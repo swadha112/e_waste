@@ -12,6 +12,7 @@ class EWasteApp extends StatelessWidget {
       title: 'EcoByte',
       theme: ThemeData(
         primarySwatch: Colors.green,
+        fontFamily: 'medieval',
       ),
       home: HomePage(),
     );

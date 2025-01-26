@@ -22,6 +22,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: medieval
+      fonts:
+        - asset: assets/ecobyte.ttf
 
   # Adding the assets section for your custom files
   assets:
