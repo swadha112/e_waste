@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 void main() {
   runApp(EWasteApp());
@@ -8,11 +9,11 @@ class EWasteApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'EcoByte', // App name
+      title: 'EcoByte',
       theme: ThemeData(
-        primarySwatch: Colors.green, // Solid green theme
+        primarySwatch: Colors.green,
       ),
-      home: HomePage(), // Initial screen
+      home: HomePage(),
     );
   }
 }
@@ -21,27 +22,78 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('EcoByte'), // App bar title
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/EcoByte.png', // Path to the image
-              width: 100, // Adjust the size as needed
-              height: 100,
+      body: Stack(
+        children: [
+          // Gradient Background
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF4a8703), Color(0xFF122201)], // Leaf-inspired colors
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
-            SizedBox(height: 20), // Spacing between the image and text
-            Text(
-              'Welcome to my project',
-              style: TextStyle(fontSize: 24),
+          ),
+
+          // Lottie Animation Layer (Above Gradient)
+          SizedBox.expand(
+            child: Lottie.asset(
+              'assets/leaves.json',
+              fit: BoxFit.cover,
+              repeat: true, // Loop animation continuously
             ),
-          ],
-        ),
+          ),
+
+          // Foreground Content
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Centers the content vertically
+              children: [
+                Text(
+                  'EcoByte',
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Help your home be safer',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white70,
+                  ),
+                ),
+                SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: () {
+                    // Navigate to Sign In Page
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF52734D), // Leaf-inspired color
+                  ),
+                  child: Text('Sign In'),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    // Navigate to Sign Up Page
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF52734D), // Leaf-inspired color
+                  ),
+                  child: Text('Sign Up'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-

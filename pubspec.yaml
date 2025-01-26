@@ -8,9 +8,11 @@ environment:
   sdk: ^3.6.1
 
 dependencies:
+  lottie: ^2.3.2
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+
 
 dev_dependencies:
   flutter_test:
@@ -23,9 +25,11 @@ flutter:
 
   # Adding the assets section for your custom files
   assets:
-    - assets/
+    - assets/leaves.json
 
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/EcoByte.png"
+  adaptive_icon_background: "#ffffff" # Background color (can be transparent)
+  adaptive_icon_foreground: "assets/EcoByte.png"
