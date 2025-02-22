@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:lottie/lottie.dart';
+import 'package:e_waste/detection_page.dart'; // Make sure to import the detection page correctly
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -34,7 +35,7 @@ class HomePage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'EcoByte',
+                        '',
                         style: TextStyle(
                           fontSize: 50,
                           fontWeight: FontWeight.bold,
@@ -43,7 +44,7 @@ class HomePage extends StatelessWidget {
                       ),
                       SizedBox(height: 10),
                       Text(
-                        'Empowering You for a Greener Tomorrow',
+                        '',
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.white70,
@@ -54,6 +55,23 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            // Try Object Detection Button
+            Padding(
+              padding: EdgeInsets.all(16.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  // Navigate to the Object Detection Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => DetectionPage()),
+                  );
+                },
+                child: Text("Try Object Detection"),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                ),
+              ),
             ),
 
             // E-Waste Statistics Section
