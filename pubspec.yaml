@@ -19,6 +19,7 @@ dependencies:
   url_launcher: ^6.1.7
   webview_flutter: ^4.2.1
   google_maps_flutter: ^2.2.5
+  flutter_dotenv: ^5.2.1
   http: ^1.3.0
 
 
@@ -37,6 +38,7 @@ flutter:
 
   # Adding the assets section for your custom files
   assets:
+    - .env
     - assets/leaves.json
     - assets/EcoByte.png
     - assets/ewasteBg.jpg
