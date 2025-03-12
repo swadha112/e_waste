@@ -101,9 +101,14 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'home.dart'; 
+import 'dart:io' show Platform;  
+import 'package:webview_flutter/webview_flutter.dart';
+
 
 void main() {
+   
   runApp(EWasteApp());
 }
 
@@ -114,7 +119,9 @@ class EWasteApp extends StatelessWidget {
       title: 'EcoByte',
       theme: ThemeData(
         primarySwatch: Colors.green,
-        fontFamily: 'medieval',
+        textTheme: GoogleFonts.ralewayTextTheme(
+          Theme.of(context).textTheme,
+        ),
       ),
       home: HomePage(), // Set HomePage as the main screen
     );

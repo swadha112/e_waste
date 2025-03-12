@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:lottie/lottie.dart';
-import 'package:e_waste/detection_page.dart'; // Make sure to import the detection page correctly
+import 'package:e_waste/harmful_effects.dart';
+import 'package:e_waste/global_efforts.dart';
+import 'package:e_waste/how_u_help.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -9,14 +10,14 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Optional: add an AppBar if desired
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Section
+            // Hero Section with gradient overlay and adjusted title alignment
             Stack(
               children: [
-                // Background Image
                 Container(
                   height: 400,
                   decoration: BoxDecoration(
@@ -26,92 +27,89 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Title & Slogan
+                Container(
+                  height: 400,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withOpacity(0.7),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+                  ),
+                ),
                 Positioned(
-                  top: 150,
                   left: 20,
-                  right: 20,
+                  bottom: 40,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '',
+                        'EcoByte',
                         style: TextStyle(
-                          fontSize: 50,
+                          fontSize: 48,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      SizedBox(height: 8),
                       Text(
-                        '',
+                        'Let’s Reduce, Reuse, and Recycle E-Waste!',
                         style: TextStyle(
                           fontSize: 20,
                           color: Colors.white70,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            // Try Object Detection Button
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Navigate to the Object Detection Page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => DetectionPage()),
-                  );
-                },
-                child: Text("Try Object Detection"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
-                ),
-              ),
-            ),
-
-            // E-Waste Statistics Section
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'E-Waste Statistics',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  SizedBox(
-                    height: 300,
-                    child: EWasteStatisticsChart(),
-                  ),
-                ],
-              ),
-            ),
-
-            // Harmful Effects Section
+            SizedBox(height: 30),
+            // Awareness Sections with Arrow Icons for Navigation
             _buildInfoSection(
+              context: context,
               title: 'Harmful Effects of E-Waste',
-              content: 'E-waste releases toxic substances like lead and mercury into the environment, affecting human health and ecosystems.',
+              content:
+                  'E-waste releases toxic substances like lead, mercury, and cadmium into the environment, affecting human health, contaminating soil and water, and disrupting ecosystems.',
               animationPath: 'assets/effects.json',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HarmfulEffectsPage()),
+                );
+              },
             ),
-
-            // Government Actions Section
             _buildInfoSection(
-              title: 'What is Being Done?',
-              content: 'Countries and governments worldwide, including India, are implementing policies for responsible e-waste management.',
+              context: context,
+              title: 'Global Efforts on E-Waste Management',
+              content:
+                  'Governments are enforcing stricter regulations, companies are adopting eco-friendly disposal, and e-waste recycling plants are growing globally.',
               animationPath: 'assets/gov.json',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GlobalEffortsPage()),
+                );
+              },
             ),
-
-            // How You Can Help Section
             _buildInfoSection(
+              context: context,
               title: 'How Can You Help?',
-              content: 'Dispose of e-waste at authorized centers, recycle electronics, and spread awareness to promote sustainable practices.',
+              content:
+                  '1. Recycle old electronics responsibly.\n'
+                  '2. Donate used gadgets to those in need.\n'
+                  '3. Participate in e-waste collection drives.\n'
+                  '4. Buy refurbished electronics to reduce demand for new production.',
               animationPath: 'assets/recycle.json',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HowCanYouHelpPage()),
+                );
+              },
             ),
           ],
         ),
@@ -119,84 +117,37 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoSection({required String title, required String content, required String animationPath}) {
-    return Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
-          Text(
-            content,
-            style: TextStyle(fontSize: 16),
-          ),
-          SizedBox(height: 20),
-          Center(
-            child: Lottie.asset(animationPath, height: 200),
-          ),
-          SizedBox(height: 30),
-        ],
-      ),
-    );
-  }
-}
-
-class EWasteStatisticsChart extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: 100,
-        barTouchData: BarTouchData(enabled: true),
-        titlesData: FlTitlesData(
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                if (value == 0) return Text('0');
-                if (value == 20) return Text('20M');
-                if (value == 40) return Text('40M');
-                if (value == 60) return Text('60M');
-                if (value == 80) return Text('80M');
-                if (value == 100) return Text('100M');
-                return Text('');
-              },
+  Widget _buildInfoSection({
+    required BuildContext context,
+    required String title,
+    required String content,
+    required String animationPath,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title row with arrow icon indicating navigation
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(title,
+                    style:
+                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                Icon(Icons.arrow_forward, color: Colors.green),
+              ],
             ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                switch (value.toInt()) {
-                  case 0:
-                    return Text('2022 Total');
-                  case 1:
-                    return Text('2022 Recycled');
-                  case 2:
-                    return Text('2030 Projected');
-                  case 3:
-                    return Text('2030 Recycled');
-                  default:
-                    return Text('');
-                }
-              },
-            ),
-          ),
+            SizedBox(height: 10),
+            Text(content, style: TextStyle(fontSize: 16)),
+            SizedBox(height: 20),
+            Center(child: Lottie.asset(animationPath, height: 200)),
+            SizedBox(height: 30),
+          ],
         ),
-        gridData: FlGridData(show: true),
-        borderData: FlBorderData(show: false),
-        barGroups: [
-          BarChartGroupData(x: 0, barRods: [BarChartRodData(toY: 62, color: Colors.blue, width: 20, borderRadius: BorderRadius.circular(5))]),
-          BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 13.8, color: Colors.green, width: 20, borderRadius: BorderRadius.circular(5))]),
-          BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 82, color: Colors.blue, width: 20, borderRadius: BorderRadius.circular(5))]),
-          BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 16.4, color: Colors.green, width: 20, borderRadius: BorderRadius.circular(5))]),
-        ],
       ),
     );
   }
