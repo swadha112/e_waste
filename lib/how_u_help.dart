@@ -54,7 +54,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                   ),
                   SizedBox(height: 5),
                   Text(
-                    '📍 Location: New Delhi', // Replace with dynamic location
+                    '📍 Location: Mumbai', // Replace with dynamic location
                     style: TextStyle(fontSize: 16, color: Colors.white70),
                   ),
                   SizedBox(height: 10),
