@@ -53,6 +53,9 @@ flutter:
     - assets/carbon.json
     - assets/recycled.json
     - assets/points.json
+    - assets/detection.json
+    - assets/recycling_facility.json
+    - assets/edrives.json
 
 
 flutter_icons:
