@@ -1,6 +1,3 @@
-
-
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -44,7 +41,7 @@ class _RecyclingInfoPageState extends State<RecyclingInfoPage> {
       _error = null;
     });
 
-    // Refined system message (prompt) to strongly request rupees + disposal
+    // Refined system message (prompt) to request price breakdown
     final systemMessage = """
 You are an AI assistant that specializes in analyzing e-waste detection results. 
 You receive the entire JSON from an object detection API, and you must:
@@ -53,7 +50,9 @@ You receive the entire JSON from an object detection API, and you must:
 3. Provide the price in Indian rupees (numeric value only) for any recyclable components, in a field named "priceInRupees".
 4. Provide the source for that price in a field named "source".
 5. If the component is non-recyclable, provide a disposal suggestion in a field named "disposal".
-6. Return only valid JSON in the format:
+6. If a price breakdown is available, provide a detailed price decomposition under "priceBreakdown" in the format:
+   - {"component": "component_name", "priceInRupees": price}.
+7. Return only valid JSON in the format:
 
 {
   "objectName": "...",
@@ -65,7 +64,11 @@ You receive the entire JSON from an object detection API, and you must:
       "recyclable": true/false,
       "priceInRupees": 0,
       "source": "...",
-      "disposal": "..."
+      "disposal": "...",
+      "priceBreakdown": [
+        {"component": "component_name", "priceInRupees": price},
+        ...
+      ]
     },
     ...
   ]
@@ -187,6 +190,7 @@ Please classify its components as requested, in valid JSON only.
               final priceInRupees = comp["priceInRupees"] ?? 0;
               final source = comp["source"] ?? "N/A";
               final disposal = comp["disposal"] ?? "N/A";
+              final priceBreakdown = comp["priceBreakdown"] ?? [];
 
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 4),
@@ -207,6 +211,25 @@ Please classify its components as requested, in valid JSON only.
                         Text(
                           'Non-Recyclable\nDisposal: $disposal',
                           style: TextStyle(height: 1.4),
+                        ),
+                      if (priceBreakdown.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Price Breakdown:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 4),
+                              for (var breakdown in priceBreakdown)
+                                Text(
+                                  '${breakdown["component"]}: ₹${breakdown["priceInRupees"]}',
+                                  style: TextStyle(height: 1.4),
+                                ),
+                            ],
+                          ),
                         ),
                     ],
                   ),
@@ -235,8 +258,8 @@ Please classify its components as requested, in valid JSON only.
         child: _isLoading
             ? Center(child: CircularProgressIndicator())
             : _error != null
-                ? SingleChildScrollView(child: Text(_error!))
-                : _buildResults(),
+            ? SingleChildScrollView(child: Text(_error!))
+            : _buildResults(),
       ),
     );
   }
