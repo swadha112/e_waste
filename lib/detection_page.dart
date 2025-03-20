@@ -7,7 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'recycling_info.dart';
 import 'dart:typed_data';
-import 'dart:html' as html; // For web file handling
+//import 'dart:html' as html; // For web file handling
+import 'package:permission_handler/permission_handler.dart'; // Add this line
 
 class DetectionPage extends StatefulWidget {
   const DetectionPage({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class _DetectionPageState extends State<DetectionPage> {
   String _resultRaw = '';
   bool _isDetecting = false;
   bool _useTextInput = false;
-  
+
   final TextEditingController _objectNameController = TextEditingController();
   final TextEditingController _modelNameController = TextEditingController();
 
@@ -31,18 +32,45 @@ class _DetectionPageState extends State<DetectionPage> {
   final String roboflowModelId = "e-waste-dataset-r0ojc/43";
   final String openAiApiKey = dotenv.env['OPENAI_API_KEY'] ?? "";
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _image = pickedFile;
-      });
+  // Function to pick an image from the gallery or use the camera
+  Future<void> _pickImage(bool fromCamera) async {
+    if (fromCamera) {
+      // Request camera permission before opening the camera
+      PermissionStatus status = await Permission.camera.request();
+      if (status.isGranted) {
+        final pickedFile = await _picker.pickImage(
+          source: ImageSource.camera,
+        );
+        if (pickedFile != null) {
+          setState(() {
+            _image = pickedFile;
+          });
 
-      if (kIsWeb) {
-        final imageBytes = await pickedFile.readAsBytes();
+          if (kIsWeb) {
+            final imageBytes = await pickedFile.readAsBytes();
+            setState(() {
+              _webImageBytes = imageBytes; // Store for display in Image.memory
+            });
+          }
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Camera permission denied')),
+        );
+      }
+    } else {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
         setState(() {
-          _webImageBytes = imageBytes; // Store for display in Image.memory
+          _image = pickedFile;
         });
+
+        if (kIsWeb) {
+          final imageBytes = await pickedFile.readAsBytes();
+          setState(() {
+            _webImageBytes = imageBytes; // Store for display in Image.memory
+          });
+        }
       }
     }
   }
@@ -117,7 +145,7 @@ class _DetectionPageState extends State<DetectionPage> {
   Future<void> _fetchObjectInfoFromOpenAI() async {
     final objectName = _objectNameController.text.trim();
     final modelName = _modelNameController.text.trim().isNotEmpty ? _modelNameController.text.trim() : "Unknown Model";
-    
+
     if (objectName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please enter an object name.')),
@@ -196,25 +224,37 @@ class _DetectionPageState extends State<DetectionPage> {
             SizedBox(height: 20),
             _useTextInput
                 ? Column(
-                    children: [
-                      TextField(controller: _objectNameController, decoration: InputDecoration(labelText: 'Object Name')),
-                      TextField(controller: _modelNameController, decoration: InputDecoration(labelText: 'Model Name (optional)')),
-                      SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: _isDetecting ? null : _fetchObjectInfoFromOpenAI,
-                        child: _isDetecting ? CircularProgressIndicator(color: Colors.white) : Text("Get Info"),
-                      ),
-                    ],
-                  )
+              children: [
+                TextField(controller: _objectNameController, decoration: InputDecoration(labelText: 'Object Name')),
+                TextField(controller: _modelNameController, decoration: InputDecoration(labelText: 'Model Name (optional)')),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _isDetecting ? null : _fetchObjectInfoFromOpenAI,
+                  child: _isDetecting ? CircularProgressIndicator(color: Colors.white) : Text("Get Info"),
+                ),
+              ],
+            )
                 : Column(
-                    children: [
-                      ElevatedButton(onPressed: _pickImage, child: Text("Pick an Image")),
-                      SizedBox(height: 10),
-                      if (_image != null) kIsWeb ? Image.memory(_webImageBytes!) : Image.file(File(_image!.path)),
-                      SizedBox(height: 10),
-                      ElevatedButton(onPressed: _isDetecting ? null : _performDetection, child: Text("Perform Detection")),
-                    ],
-                  ),
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () => _pickImage(false),
+                        child: Text("Pick from Gallery")
+                    ),
+                    ElevatedButton(
+                        onPressed: () => _pickImage(true),
+                        child: Text("Use Camera")
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                if (_image != null) kIsWeb ? Image.memory(_webImageBytes!) : Image.file(File(_image!.path)),
+                SizedBox(height: 10),
+                ElevatedButton(onPressed: _isDetecting ? null : _performDetection, child: Text("Perform Detection")),
+              ],
+            ),
           ],
         ),
       ),
