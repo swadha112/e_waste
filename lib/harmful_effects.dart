@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'global_map_section.dart';  // Import the GlobalMapSection widget
 
 class HarmfulEffectsPage extends StatefulWidget {
   @override
@@ -10,6 +11,7 @@ class HarmfulEffectsPage extends StatefulWidget {
 
 class _HarmfulEffectsPageState extends State<HarmfulEffectsPage> {
   late YoutubePlayerController _youtubeController;
+
   // Markers for the map (adjust coordinates as needed)
   final Set<Marker> _markers = {
     Marker(
@@ -75,7 +77,7 @@ class _HarmfulEffectsPageState extends State<HarmfulEffectsPage> {
             SizedBox(height: 10),
             Text(
               'E-Waste, or electronic waste, refers to discarded electronic devices such as computers, smartphones, TVs, and other gadgets. '
-              'Improper disposal of these devices releases toxic substances into the environment.',
+                  'Improper disposal of these devices releases toxic substances into the environment.',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
@@ -109,7 +111,7 @@ class _HarmfulEffectsPageState extends State<HarmfulEffectsPage> {
             SizedBox(height: 10),
             Text(
               'According to the Global E-Waste Monitor, the world generated about 53.6 million metric tonnes of e-waste in 2019. '
-              'Consumption of electronics and short product lifecycles continue to drive this number upward.',
+                  'Consumption of electronics and short product lifecycles continue to drive this number upward.',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
@@ -142,9 +144,10 @@ class _HarmfulEffectsPageState extends State<HarmfulEffectsPage> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
+            // Now using the imported GlobalMapSection
             Container(
               height: 300,
-              child: GlobalMapSection(markers: _markers),
+              child: GlobalMapSection(markers: _markers),  // Using GlobalMapSection
             ),
             SizedBox(height: 30),
             // Section 6: YouTube Video in a box
@@ -173,8 +176,8 @@ class _HarmfulEffectsPageState extends State<HarmfulEffectsPage> {
             SizedBox(height: 10),
             Text(
               'A carbon footprint measures the total greenhouse gas emissions caused by an individual, organization, or product. '
-              'The lifecycle of electronic devices—from manufacturing to disposal—contributes to carbon emissions. '
-              'By recycling and extending device lifespans, we can help reduce this footprint.',
+                  'The lifecycle of electronic devices—from manufacturing to disposal—contributes to carbon emissions. '
+                  'By recycling and extending device lifespans, we can help reduce this footprint.',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
@@ -382,37 +385,6 @@ class IndiaEWasteChart extends StatelessWidget {
         sectionsSpace: 2,
         centerSpaceRadius: 40,
       ),
-    );
-  }
-}
-
-// GlobalMapSection: A widget that uses google_maps_flutter to display a map with markers.
-class GlobalMapSection extends StatefulWidget {
-  final Set<Marker> markers;
-
-  const GlobalMapSection({Key? key, required this.markers}) : super(key: key);
-
-  @override
-  _GlobalMapSectionState createState() => _GlobalMapSectionState();
-}
-
-class _GlobalMapSectionState extends State<GlobalMapSection> {
-  // Set an initial camera position that roughly shows the entire world.
-  static final CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(20.0, 0.0),
-    zoom: 2,
-  );
-
-  late GoogleMapController _mapController;
-
-  @override
-  Widget build(BuildContext context) {
-    return GoogleMap(
-      initialCameraPosition: _initialPosition,
-      markers: widget.markers,
-      onMapCreated: (controller) {
-        _mapController = controller;
-      },
     );
   }
 }
