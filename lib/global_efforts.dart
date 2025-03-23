@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flip_card/flip_card.dart';
 
 class GlobalEffortsPage extends StatelessWidget {
   const GlobalEffortsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Use the current theme's text style for consistency.
-    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
         title: Text('Global Efforts on E-Waste Management'),
@@ -15,101 +14,218 @@ class GlobalEffortsPage extends StatelessWidget {
       ),
       backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle('Global E-Waste Recycling Rates'),
-            SizedBox(height: 10),
-            _buildSectionDescription(
-              'Recent studies indicate that formal recycling rates remain very low. For example, reports show a gradual increase from about 15.0% in 2015 to 18.0% in 2020. The line chart below represents these trends over recent years.',
+            // Section 1: Global E-Waste Recycling Rates with chart as additional content
+            FlippableSectionCard(
+              title: 'Global E-Waste Recycling Rates',
+              description:
+              'Recent studies indicate that formal recycling rates remain very low. Reports show a gradual increase from about 15.0% in 2015 to 18.0% in 2020.',
+              icon: Icons.trending_up,
+              backgroundColor: Colors.lightGreen.shade200,
+              additionalContent: Column(
+                children: [
+                  SizedBox(height: 20),
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        height: 300,
+                        child: RecyclingRatesChart(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Data from Statista and Global E-Waste Monitor.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 20),
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            // Section 2: India's E-Waste Management with chart as additional content
+            FlippableSectionCard(
+              title: "India's E-Waste Management",
+              description:
+              'India is one of the fastest-growing e-waste producers. Only about 15% of the e-waste is processed through formal recycling channels, while the vast majority is handled informally.',
+              icon: Icons.flag,
+              backgroundColor: Colors.lightGreen[300]!,
+              additionalContent: Column(
+                children: [
+                  SizedBox(height: 20),
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        height: 300,
+                        child: IndiaRecyclingChart(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Informal recycling dominates in India.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  height: 300,
-                  child: RecyclingRatesChart(),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Note: Data from sources such as Statista and the Global E-Waste Monitor.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            Divider(height: 40, thickness: 1.5),
-            _buildSectionTitle("India's E-Waste Management"),
-            SizedBox(height: 10),
-            _buildSectionDescription(
-              'India is one of the fastest-growing e-waste producers. However, only about 15% of the e-waste is processed through formal recycling channels, with the vast majority handled informally. The pie chart below illustrates these figures.',
             ),
             SizedBox(height: 20),
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  height: 300,
-                  child: IndiaRecyclingChart(),
-                ),
-              ),
+            // Section 3: How India Manages E-Waste (no extra details)
+            FlippableSectionCard(
+              title: 'How India Manages E-Waste',
+              description:
+              'India employs a mix of methods including formal recycling plants, Extended Producer Responsibility (EPR), awareness campaigns, and public-private partnerships to reduce the environmental impact of e-waste.',
+              icon: Icons.settings,
+              backgroundColor: Colors.lightGreen.shade200,
             ),
-            SizedBox(height: 10),
-            _buildSectionDescription(
-              'India’s formal recycling sector is small but growing. Informal recycling, while providing livelihoods, often lacks environmental and safety controls.',
+            SizedBox(height: 20),
+            // Section 4: What Governments Can Do (no extra details)
+            FlippableSectionCard(
+              title: 'What Governments Can Do',
+              description:
+              '• Stricter Enforcement: Implement and enforce e-waste regulations with robust penalties for non-compliance.\n'
+                  '• Infrastructure Investment: Increase formal recycling centers and collection points.\n'
+                  '• Public Awareness: Educate consumers on proper e-waste disposal and recycling.\n'
+                  '• Incentives for Manufacturers: Promote eco-design and product take-back programs.',
+              icon: Icons.gavel,
+              backgroundColor: Colors.lightGreen[300]!,
             ),
-            Divider(height: 40, thickness: 1.5),
-            _buildSectionTitle('How India Manages E-Waste'),
-            SizedBox(height: 10),
-            _buildSectionDescription(
-              'India employs a mix of methods, including formal recycling plants, Extended Producer Responsibility (EPR), awareness campaigns, and public-private partnerships. These efforts aim to reduce the environmental impact of e-waste while promoting safer recycling practices.',
+            SizedBox(height: 20),
+            // Section 5: Conclusion (no extra details)
+            FlippableSectionCard(
+              title: 'Conclusion',
+              description:
+              'Global e-waste recycling remains a significant challenge. Enhanced collaboration among governments, industries, and consumers is essential for a sustainable circular economy.',
+              icon: Icons.check_circle,
+              backgroundColor: Colors.lightGreen.shade200,
             ),
-            Divider(height: 40, thickness: 1.5),
-            _buildSectionTitle('What Governments Can Do'),
-            SizedBox(height: 10),
-            _buildSectionDescription(
-              '• Stricter Enforcement: Implement and enforce existing e-waste regulations with robust penalties for non-compliance.\n'
-              '• Infrastructure Investment: Increase formal recycling centers and collection points, especially in underserved areas.\n'
-              '• Public Awareness: Launch campaigns to educate consumers on the benefits of proper e-waste disposal and recycling.\n'
-              '• Incentives for Manufacturers: Promote eco-design and product take-back programs through subsidies and tax incentives.',
-            ),
-            Divider(height: 40, thickness: 1.5),
-            _buildSectionTitle('Conclusion'),
-            SizedBox(height: 10),
-            _buildSectionDescription(
-              'Global e-waste recycling remains a significant challenge. Enhanced collaboration among governments, industries, and consumers is essential to drive improvements in recycling rates and develop a sustainable circular economy for electronics.',
-            ),
-            SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: Colors.green[900],
+class FlippableSectionCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color backgroundColor;
+  final Widget? additionalContent;
+
+  const FlippableSectionCard({
+    Key? key,
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.backgroundColor,
+    this.additionalContent,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Wrap the flip card in a fixed-size container.
+    return SizedBox(
+      height: 500, // fixed height for uniformity
+      child: FlipCard(
+        direction: FlipDirection.HORIZONTAL,
+        front: Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[900],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                Icon(
+                  icon,
+                  size: 40,
+                  color: Colors.green,
+                ),
+              ],
+            ),
+          ),
+        ),
+        back: Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          // If additionalContent is provided, show a tabbed view.
+          child: additionalContent != null
+              ? DefaultTabController(
+            length: 2,
+            child: Column(
+              children: [
+                TabBar(
+                  indicatorColor: Colors.green,
+                  labelColor: Colors.green[900],
+                  unselectedLabelColor: Colors.grey,
+                  tabs: [
+                    Tab(text: "Overview"),
+                    Tab(text: "Details"),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      SingleChildScrollView(
+                        padding: EdgeInsets.all(25),
+                        child: Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SingleChildScrollView(
+                        padding: EdgeInsets.all(25),
+                        child: additionalContent,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+              : SingleChildScrollView(
+            child: Text(
+              description,
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
       ),
-    );
-  }
-
-  Widget _buildSectionDescription(String description) {
-    return Text(
-      description,
-      style: TextStyle(fontSize: 16, color: Colors.grey[800]),
     );
   }
 }
@@ -121,13 +237,9 @@ class RecyclingRatesChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Create data points for the line chart.
     final spots = List.generate(
       recyclingRates.length,
-      (index) => FlSpot(
-        years[index].toDouble(),
-        recyclingRates[index],
-      ),
+          (index) => FlSpot(years[index].toDouble(), recyclingRates[index]),
     );
 
     return LineChart(
@@ -150,22 +262,20 @@ class RecyclingRatesChart extends StatelessWidget {
             sideTitles: SideTitles(
               reservedSize: 40,
               showTitles: true,
-              getTitlesWidget: (value, meta) {
-                return Text('${value.toStringAsFixed(0)}%',
-                    style: TextStyle(fontSize: 12));
-              },
+              getTitlesWidget: (value, meta) => Text(
+                '${value.toStringAsFixed(0)}%',
+                style: TextStyle(fontSize: 12),
+              ),
             ),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               reservedSize: 32,
               showTitles: true,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  value.toStringAsFixed(0),
-                  style: TextStyle(fontSize: 12),
-                );
-              },
+              getTitlesWidget: (value, meta) => Text(
+                value.toStringAsFixed(0),
+                style: TextStyle(fontSize: 12),
+              ),
             ),
           ),
           topTitles: AxisTitles(),
@@ -193,25 +303,30 @@ class RecyclingRatesChart extends StatelessWidget {
 class IndiaRecyclingChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Pie chart representing that formal recycling accounts for 15% and informal/other for 85%.
     return PieChart(
       PieChartData(
         sections: [
           PieChartSectionData(
             value: 15,
             title: "Formal (15%)",
-            color: Colors.blue,
+            color: Colors.brown,
             radius: 80,
             titleStyle: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
           ),
           PieChartSectionData(
             value: 85,
             title: "Informal/Other (85%)",
-            color: Colors.grey,
+            color: Colors.lightGreen,
             radius: 80,
             titleStyle: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
           ),
         ],
         sectionsSpace: 2,
