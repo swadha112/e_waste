@@ -14,7 +14,7 @@ class GlobalMapSection extends StatefulWidget {
 }
 
 class _GlobalMapSectionState extends State<GlobalMapSection> {
-  static final CameraPosition _initialPosition = CameraPosition(
+  static final CameraPosition _initialPosition = const CameraPosition(
     target: LatLng(20.0, 0.0),
     zoom: 2,
   );
@@ -45,7 +45,7 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               _eWasteData,
-              style: TextStyle(fontSize: 18),
+              style: const TextStyle(fontSize: 18),
             ),
           ),
       ],
@@ -57,7 +57,6 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
     try {
       // Send the country name to OpenAI API
       final eWastePerCapita = await getEWasteDataFromOpenAI(country);
-
       setState(() {
         _eWasteData = 'E-waste generated for $country: $eWastePerCapita';
       });
@@ -79,11 +78,11 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
     };
 
     final prompt = '''
-    I have the following information for a country: 
-    Country: $country
+I have the following information for a country: 
+Country: $country
 
-    Please retrieve the e-waste generated data for $country from the website: https://globalewaste.org/statistics/country/$country/2022/
-    Extract only the "e-waste generated per capita" value and return it.
+Please retrieve the e-waste generated data for $country from the website: https://globalewaste.org/statistics/country/$country/2022/
+Extract only the "e-waste generated per capita" value and return it.
     ''';
 
     final body = json.encode({
@@ -102,11 +101,12 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
     }
   }
 
-  // Reverse geocode: Get the country name based on coordinates (latitude, longitude)
+  // Reverse geocode: Get the country name based on coordinates
   Future<String> getCountryFromCoordinates(LatLng location) async {
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']; // Your Google Maps Geocoding API Key
     final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=$apiKey');
+      'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=$apiKey',
+    );
 
     final response = await http.get(url);
 
@@ -120,10 +120,15 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
               return component['long_name'];
             }
           }
-
+        }
+        // If we didn't find a 'country' in the address components
+        return 'Country not found';
+      } else {
+        // If no results were returned
+        return 'No results found';
       }
-      return 'Country not found';
     } else {
+      // If the status code isn't 200, throw an error
       throw Exception('Failed to get country from coordinates');
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:e_waste/detection_page.dart';
+import 'package:e_waste/recycling_center.dart';
 
 class HowCanYouHelpPage extends StatefulWidget {
   @override
@@ -97,6 +98,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               buttonText: 'Find Facilities',
               onPressed: () {
                 // TODO: Add navigation to recycling facilities map page
+                Navigator.push(context, MaterialPageRoute(builder: (context) => EwasteCentersPage()));
               },
               reverse: true, // Animation on Left
             ),
