@@ -39,7 +39,9 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Dashboard
+            // -------------------------------------------------
+            // 1) User Dashboard
+            // -------------------------------------------------
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -51,7 +53,11 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                 children: [
                   Text(
                     'Hello, Swadha!', // Replace with dynamic username
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: 5),
                   Text(
@@ -72,7 +78,49 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             ),
             SizedBox(height: 20),
 
-            // Earn Rewards Section (Green Container, Animation on Right)
+            // -------------------------------------------------
+            // 2) Ways You Can Contribute (RIGHT BELOW DASHBOARD)
+            // -------------------------------------------------
+            Text(
+              'Ways You Can Contribute',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[800],
+              ),
+            ),
+            SizedBox(height: 12),
+
+            _buildContributionItem(
+              icon: Icons.recycling,
+              title: 'Recycle Responsibly',
+              subtitle: 'Take your old gadgets to certified e-waste recycling centers.',
+            ),
+            _buildContributionItem(
+              icon: Icons.volunteer_activism,
+              title: 'Donate Electronics',
+              subtitle: 'Give functional used devices to those in need instead of discarding them.',
+            ),
+            _buildContributionItem(
+              icon: Icons.group_work,
+              title: 'Join Collection Drives',
+              subtitle: 'Participate in local e-waste drives to help gather old electronics safely.',
+            ),
+            _buildContributionItem(
+              icon: Icons.handshake,
+              title: 'Buy Refurbished',
+              subtitle: 'Choose refurbished gadgets to lower demand for new electronics production.',
+            ),
+            _buildContributionItem(
+              icon: Icons.campaign,
+              title: 'Spread Awareness',
+              subtitle: 'Educate your community about responsible e-waste disposal methods.',
+            ),
+            SizedBox(height: 30),
+
+            // -------------------------------------------------
+            // 3) Earn Rewards Section (Green Container)
+            // -------------------------------------------------
             _buildSection(
               title: 'Earn Rewards for Recycling',
               description: '📸 Scan an object to detect its recyclable and non-recyclable components.\n'
@@ -88,7 +136,9 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             ),
             SizedBox(height: 30),
 
-            // Locate Nearby Recycling Facilities (Animation on Left)
+            // -------------------------------------------------
+            // 4) Locate Nearby Recycling Facilities
+            // -------------------------------------------------
             _buildSection(
               title: 'Locate Nearby Recycling Facilities',
               description: '🔍 Find nearby certified recycling centers with ease.\n'
@@ -97,14 +147,15 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               animationPath: 'assets/recycling_facility.json',
               buttonText: 'Find Facilities',
               onPressed: () {
-                // TODO: Add navigation to recycling facilities map page
                 Navigator.push(context, MaterialPageRoute(builder: (context) => EwasteCentersPage()));
               },
               reverse: true, // Animation on Left
             ),
             SizedBox(height: 30),
 
-            // Participate in E-Drives (Animation on Right)
+            // -------------------------------------------------
+            // 5) Participate in E-Drives
+            // -------------------------------------------------
             _buildSection(
               title: 'Participate in E-Drives',
               description: '📅 Join organized e-waste collection drives in your area.\n'
@@ -119,7 +170,9 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             ),
             SizedBox(height: 30),
 
-            // YouTube Video Section
+            // -------------------------------------------------
+            // 6) YouTube Video Section
+            // -------------------------------------------------
             Text(
               'Watch this video for tips on efficient e-waste management:',
               style: TextStyle(fontSize: 16),
@@ -136,7 +189,9 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
     );
   }
 
-  // ✅ Dashboard Info Cards
+  // -----------------------------
+  // Dashboard Info Cards
+  // -----------------------------
   Widget _infoCard(String title, String value, String animationPath) {
     return Expanded(
       child: Container(
@@ -151,16 +206,24 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
           children: [
             Lottie.asset(animationPath, height: 50), // Lottie animation
             SizedBox(height: 5),
-            Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green[800])),
+            Text(
+              title,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green[800]),
+            ),
             SizedBox(height: 5),
-            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+            Text(
+              value,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ✅ Unified Section Builder (Alternating Layout)
+  // -----------------------------
+  // Section Builder (Green Box)
+  // -----------------------------
   Widget _buildSection({
     required String title,
     required String description,
@@ -179,25 +242,32 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: reverse
             ? [
-          Expanded(child: Lottie.asset(animationPath, height: 200)), // Animation on Left
+          // Animation on Left
+          Expanded(child: Lottie.asset(animationPath, height: 200)),
           SizedBox(width: 20),
           Expanded(child: _textBlock(title, description, buttonText, onPressed)),
         ]
             : [
+          // Animation on Right
           Expanded(child: _textBlock(title, description, buttonText, onPressed)),
           SizedBox(width: 20),
-          Expanded(child: Lottie.asset(animationPath, height: 200)), // Animation on Right
+          Expanded(child: Lottie.asset(animationPath, height: 200)),
         ],
       ),
     );
   }
 
-  // ✅ Text Block with Button
+  // -----------------------------
+  // Text Block with Button
+  // -----------------------------
   Widget _textBlock(String title, String description, String buttonText, VoidCallback onPressed) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+        Text(
+          title,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         SizedBox(height: 10),
         Text(description, style: TextStyle(fontSize: 14, color: Colors.white70)),
         SizedBox(height: 15),
@@ -207,6 +277,66 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
           child: Text(buttonText),
         ),
       ],
+    );
+  }
+
+  // -----------------------------
+  // "Ways You Can Contribute" Item
+  // -----------------------------
+  Widget _buildContributionItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white, // or a light shade
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon on the left
+          Icon(
+            icon,
+            size: 30,
+            color: Colors.green,
+          ),
+          SizedBox(width: 16),
+          // Title + Subtitle in a column
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title in bold
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.green[900],
+                  ),
+                ),
+                SizedBox(height: 6),
+                // Subtitle
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
