@@ -2,18 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/foundation.dart'; // for debugPrint if needed
+import 'package:flutter/foundation.dart'; // for debugPrint
+import 'package:url_launcher/url_launcher.dart'; // to launch URLs
 
-// Simple model for the e-waste center data we want to display
+// Updated model for the e-waste center data, including website and map link.
 class EwasteCenter {
   final String name;
   final String address;
-  final String? phoneNumber; // Might be null if not provided
+  final String? phoneNumber; // May be null.
+  final String? website;     // Website URL (if available).
+  final String? mapLink;     // Map URL from SERP API (if available).
 
   EwasteCenter({
     required this.name,
     required this.address,
     this.phoneNumber,
+    this.website,
+    this.mapLink,
   });
 }
 
@@ -33,114 +38,94 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
 
   @override
   void dispose() {
-    debugPrint('Disposing controllers');
     _addressController.dispose();
     _pincodeController.dispose();
     super.dispose();
   }
 
+  // Updated cleaning function: preserves '+' at the beginning, removes spaces, dashes, and parentheses.
+  String _cleanPhoneNumber(String phone) {
+    if (phone.startsWith('+')) {
+      return '+' + phone.substring(1).replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    } else {
+      return phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    }
+  }
+
+  // If the SERP API does not provide a valid map link, generate a fallback URL using the address.
+  String _getMapUrl(EwasteCenter center) {
+    if (center.mapLink != null && center.mapLink!.isNotEmpty) {
+      return center.mapLink!;
+    } else {
+      return 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(center.address)}';
+    }
+  }
+
   Future<void> _searchCenters() async {
-    debugPrint('Search started');
     setState(() {
       _isLoading = true;
       _centers.clear();
     });
 
-    // Log the user input values
-    final addressText = _addressController.text;
-    final pincodeText = _pincodeController.text;
-    debugPrint('User input - Address: $addressText, Pincode: $pincodeText');
+    final addressInput = '${_addressController.text}, ${_pincodeController.text}';
+    // Retrieve your SERP API key from your .env file.
+    final apiKey = dotenv.env['SERP_API_KEY'];
 
-    final addressInput = '$addressText, $pincodeText';
-    // Use your new unrestricted API key here
-    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
-    debugPrint('Using API key: $apiKey');
+    // Update query to focus on e-waste recycling/disposal centers.
+    final query = 'e-waste recycling center near $addressInput';
+    final encodedQuery = Uri.encodeComponent(query);
+
+    // Construct the SERP API URL for Google Maps results.
+    final serpUrl = Uri.parse(
+      'https://serpapi.com/search.json?engine=google_maps&q=$encodedQuery&api_key=$apiKey',
+    );
+
+    debugPrint('SERP API request URL: $serpUrl');
 
     try {
-      // 1. Geocode the address -> lat/lng
-      final geoUrl = Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json'
-            '?address=${Uri.encodeComponent(addressInput)}'
-            '&key=$apiKey',
-      );
+      final response = await http.get(serpUrl);
+      final data = json.decode(response.body);
 
-      debugPrint('Geocode request URL: $geoUrl');
+      // Log entire SERP API response.
+      debugPrint('SERP API response: ${data.toString()}');
 
-      final geoResponse = await http.get(geoUrl);
-      final geoData = json.decode(geoResponse.body);
-      debugPrint('Geocode response received: ${geoData.toString()}');
+      if (data['local_results'] != null) {
+        final results = data['local_results'] as List;
+        List<EwasteCenter> centers = [];
+        for (var result in results) {
+          final name = result['title'] ?? 'Unknown Center';
+          final address = result['address'] ?? 'No address available';
+          final phone = result['phone']; // May be null.
 
-      if (geoData['status'] == 'OK' && geoData['results'].isNotEmpty) {
-        final location = geoData['results'][0]['geometry']['location'];
-        final lat = location['lat'];
-        final lng = location['lng'];
-        debugPrint('Parsed lat: $lat, lng: $lng');
+          // Try to extract a website link; if not, fallback to "link".
+          final website = (result['website'] != null && result['website'].toString().isNotEmpty)
+              ? result['website']
+              : (result['link'] != null && result['link'].toString().isNotEmpty ? result['link'] : null);
 
-        // 2. Use Places Nearby Search for "recycling center"
-        final placesUrl = Uri.parse(
-          'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
-              '?location=$lat,$lng'
-              '&radius=50000'
-              '&keyword=recycling+center'
-              '&key=$apiKey',
-        );
+          // Extract the map link from "maps_url", if available.
+          final mapLink = (result['maps_url'] != null && result['maps_url'].toString().isNotEmpty)
+              ? result['maps_url']
+              : null;
 
-        debugPrint('Places request URL: $placesUrl');
-
-        final nearbyResponse = await http.get(placesUrl);
-        final nearbyData = json.decode(nearbyResponse.body);
-        debugPrint('Nearby search response received: ${nearbyData.toString()}');
-
-        if (nearbyData['status'] == 'OK' && nearbyData['results'] != null) {
-          final results = nearbyData['results'] as List<dynamic>;
-          List<EwasteCenter> centers = [];
-
-          for (var place in results) {
-            final placeId = place['place_id'];
-            debugPrint('Processing place with ID: $placeId');
-
-            // Fetch detailed info for each place
-            final details = await _fetchPlaceDetails(placeId, apiKey);
-            debugPrint('Details received for placeId $placeId: ${details.toString()}');
-
-            // Use details when available, fallback to basic place info
-            final name = details['name'] ?? place['name'] ?? 'Unknown Center';
-            final address = details['formatted_address'] ??
-                place['vicinity'] ??
-                'No address available';
-            final phoneNumber = details['formatted_phone_number'];
-
-            debugPrint('Center - Name: $name, Address: $address, Phone: $phoneNumber');
-
-            centers.add(EwasteCenter(
-              name: name,
-              address: address,
-              phoneNumber: phoneNumber,
-            ));
-          }
-
-          setState(() {
-            _centers = centers;
-          });
-          debugPrint('Total centers found: ${centers.length}');
-        } else {
-          // No results or error from Places API
-          debugPrint('Places search returned status: ${nearbyData['status']}');
-          debugPrint('Places search error_message: ${nearbyData['error_message']}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No e-waste centers found nearby.')),
-          );
+          centers.add(EwasteCenter(
+            name: name,
+            address: address,
+            phoneNumber: phone,
+            website: website,
+            mapLink: mapLink,
+          ));
         }
+        setState(() {
+          _centers = centers;
+        });
       } else {
-        // Could not geocode the address
-        debugPrint('Geocode returned status: ${geoData['status']}');
-        debugPrint('Geocode error_message: ${geoData['error_message']}');
+        debugPrint('No local_results found in SERP API response.');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to find location for given address.')),
+          const SnackBar(content: Text('No e-waste centers found nearby.')),
         );
       }
     } catch (e) {
-      debugPrint('Error caught in _searchCenters: $e');
+      debugPrint('Error during SERP API request: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -148,47 +133,37 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
       setState(() {
         _isLoading = false;
       });
-      debugPrint('Search finished');
     }
   }
 
-  // Helper to fetch place details for phone number, etc.
-  Future<Map<String, dynamic>> _fetchPlaceDetails(String placeId, String? apiKey) async {
-    debugPrint('Fetching details for placeId: $placeId');
-    final detailsUrl = Uri.parse(
-      'https://maps.googleapis.com/maps/api/place/details/json'
-          '?place_id=$placeId'
-          '&fields=name,formatted_address,formatted_phone_number'
-          '&key=$apiKey',
-    );
-
-    debugPrint('Place details request URL: $detailsUrl');
-
-    final detailsResponse = await http.get(detailsUrl);
-    final detailsData = json.decode(detailsResponse.body);
-    debugPrint('Place details response for $placeId: ${detailsData.toString()}');
-
-    if (detailsData['status'] == 'OK') {
-      return detailsData['result'] ?? {};
+  // Function to launch a URL for websites, maps, or phone dialer.
+  Future<void> _launchURL(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      debugPrint('Details API returned status: ${detailsData['status']}');
-      debugPrint('Details API error_message: ${detailsData['error_message']}');
-      return {};
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch URL')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Building EwasteCentersPage widget');
+    // Updated color scheme.
+    final cardColor = Colors.lightGreen[300];  // A gentle light green.
+    final buttonColor = Colors.lightGreen[800];       // A darker, richer green for icons and text.
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Find E-waste Centers'),
+        backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Address & Pincode inputs
+            // Input fields for address and pincode.
             TextField(
               controller: _addressController,
               decoration: const InputDecoration(
@@ -207,12 +182,16 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonColor,
+              ),
               onPressed: _isLoading ? null : _searchCenters,
-              child: _isLoading ? const CircularProgressIndicator() : const Text('Search'),
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Search'),
             ),
             const SizedBox(height: 20),
-
-            // Results list
+            // Display results.
             if (_centers.isNotEmpty)
               ListView.builder(
                 shrinkWrap: true,
@@ -221,15 +200,54 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
                 itemBuilder: (context, index) {
                   final center = _centers[index];
                   return Card(
+                    color: cardColor,
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
-                      title: Text(center.name),
+                      title: Text(
+                        center.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(center.address),
-                          if (center.phoneNumber != null)
-                            Text('Phone: ${center.phoneNumber}'),
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              if (center.phoneNumber != null && center.phoneNumber!.isNotEmpty)
+                                TextButton.icon(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: buttonColor,
+                                  ),
+                                  icon: const Icon(Icons.phone),
+                                  label: const Text('Call'),
+                                  onPressed: () {
+                                    final cleanNumber = _cleanPhoneNumber(center.phoneNumber!);
+                                    debugPrint('Launching phone dialer for: tel:$cleanNumber');
+                                    _launchURL('tel:$cleanNumber');
+                                  },
+                                ),
+                              if (center.website != null && center.website!.isNotEmpty)
+                                TextButton.icon(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: buttonColor,
+                                  ),
+                                  icon: const Icon(Icons.language),
+                                  label: const Text('Website'),
+                                  onPressed: () => _launchURL(center.website!),
+                                ),
+                              // Always show Map button using fallback if needed.
+                              TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: buttonColor,
+                                ),
+                                icon: const Icon(Icons.map),
+                                label: const Text('Map'),
+                                onPressed: () => _launchURL(_getMapUrl(center)),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -237,7 +255,6 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
                 },
               )
             else if (!_isLoading)
-            // If we have no centers and not loading, show a hint
               const Text('No results yet. Enter an address and pincode above.'),
           ],
         ),
