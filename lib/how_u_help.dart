@@ -3,6 +3,7 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:e_waste/detection_page.dart';
 import 'package:e_waste/recycling_center.dart';
+import 'package:e_waste/edrives.dart';
 
 class HowCanYouHelpPage extends StatefulWidget {
   @override
@@ -164,7 +165,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               animationPath: 'assets/edrives.json',
               buttonText: 'Join E-Drives',
               onPressed: () {
-                // TODO: Add navigation to E-Drives page
+                Navigator.push(context, MaterialPageRoute(builder: (context) => EDrivesPage()));
               },
               reverse: false, // Animation on Right
             ),
@@ -235,7 +236,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green[500], // Green background
+        color: Colors.green[800], // Green background
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart'; // for debugPrint
 import 'package:url_launcher/url_launcher.dart'; // to launch URLs
+import 'package:flutter/services.dart'; // for Clipboard
 
 // Updated model for the e-waste center data, including website and map link.
 class EwasteCenter {
@@ -137,27 +138,37 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
   }
 
   // Function to launch a URL for websites, maps, or phone dialer.
+  // For phone URLs, if launching fails, copy the number to clipboard.
   Future<void> _launchURL(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not launch URL')),
-      );
+      // If launching the phone URL fails, and the URL starts with "tel:", copy the number.
+      if (url.startsWith('tel:')) {
+        final phoneNumber = url.substring(4);
+        await Clipboard.setData(ClipboardData(text: phoneNumber));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Phone number copied to clipboard')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch URL')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     // Updated color scheme.
-    final cardColor = Colors.lightGreen[300];  // A gentle light green.
-    final buttonColor = Colors.lightGreen[800];       // A darker, richer green for icons and text.
+    final cardColor = Colors.lightGreen;  // A gentle light green.
+    final buttonColor = Colors.green[800];       // A darker, richer green.
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Find E-waste Centers'),
-        backgroundColor: Colors.green,
+        backgroundColor: buttonColor,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -184,6 +195,7 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: buttonColor,
+                foregroundColor: Colors.white,
               ),
               onPressed: _isLoading ? null : _searchCenters,
               child: _isLoading
@@ -218,20 +230,20 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
                               if (center.phoneNumber != null && center.phoneNumber!.isNotEmpty)
                                 TextButton.icon(
                                   style: TextButton.styleFrom(
-                                    foregroundColor: buttonColor,
+                                    foregroundColor: Colors.black,
                                   ),
                                   icon: const Icon(Icons.phone),
                                   label: const Text('Call'),
-                                  onPressed: () {
+                                  onPressed: () async {
                                     final cleanNumber = _cleanPhoneNumber(center.phoneNumber!);
-                                    debugPrint('Launching phone dialer for: tel:$cleanNumber');
-                                    _launchURL('tel:$cleanNumber');
+                                    debugPrint('Attempting to launch dialer for: tel:$cleanNumber');
+                                    await _launchURL('tel:$cleanNumber');
                                   },
                                 ),
                               if (center.website != null && center.website!.isNotEmpty)
                                 TextButton.icon(
                                   style: TextButton.styleFrom(
-                                    foregroundColor: buttonColor,
+                                    foregroundColor: Colors.black,
                                   ),
                                   icon: const Icon(Icons.language),
                                   label: const Text('Website'),
@@ -240,7 +252,7 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
                               // Always show Map button using fallback if needed.
                               TextButton.icon(
                                 style: TextButton.styleFrom(
-                                  foregroundColor: buttonColor,
+                                  foregroundColor: Colors.black,
                                 ),
                                 icon: const Icon(Icons.map),
                                 label: const Text('Map'),
