@@ -14,7 +14,7 @@ class GlobalMapSection extends StatefulWidget {
 }
 
 class _GlobalMapSectionState extends State<GlobalMapSection> {
-  static final CameraPosition _initialPosition = const CameraPosition(
+  static final CameraPosition _initialPosition = CameraPosition(
     target: LatLng(20.0, 0.0),
     zoom: 2,
   );
@@ -34,8 +34,10 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
               _mapController = controller;
             },
             onTap: (LatLng location) async {
+              print("Map tapped at: Lat: ${location.latitude}, Lng: ${location.longitude}");
               // Get the country name based on location (reverse geocoding)
               String country = await getCountryFromCoordinates(location);
+              print("Country found: $country");
               _fetchEWasteData(country);
             },
           ),
@@ -45,7 +47,7 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               _eWasteData,
-              style: const TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: 18),
             ),
           ),
       ],
@@ -54,59 +56,62 @@ class _GlobalMapSectionState extends State<GlobalMapSection> {
 
   // Fetch e-waste per capita data for the clicked country
   Future<void> _fetchEWasteData(String country) async {
+    print("Fetching e-waste data for $country...");
     try {
-      // Send the country name to OpenAI API
-      final eWastePerCapita = await getEWasteDataFromOpenAI(country);
+      // Send the country name to Google Custom Search API
+      final eWastePerCapita = await getEWasteDataFromGoogleSearch(country);
+      print("E-waste data fetched: $eWastePerCapita");
+
       setState(() {
         _eWasteData = 'E-waste generated for $country: $eWastePerCapita';
       });
     } catch (e) {
+      print("Error fetching e-waste data: $e");
       setState(() {
         _eWasteData = 'Error fetching e-waste data: $e';
       });
     }
   }
 
-  // Fetch data from OpenAI API
-  Future<String> getEWasteDataFromOpenAI(String country) async {
-    final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
-    final url = Uri.parse('https://api.openai.com/v1/completions');
+  // Fetch data from Google Custom Search API
+  Future<String> getEWasteDataFromGoogleSearch(String country) async {
+    print("Sending request to Google Custom Search API for country: $country");
 
-    final headers = {
-      'Authorization': 'Bearer $openAiApiKey',
-      'Content-Type': 'application/json',
-    };
+    final apiKey = dotenv.env['GOOGLE_CSE_API_KEY']; // Your Google API key
+    final cseId = dotenv.env['GOOGLE_CSE_CX']; // Your Custom Search Engine ID
+    final url = Uri.parse(
+        'https://www.googleapis.com/customsearch/v1?q=e-waste+generated+per+capita+$country&key=$apiKey&cx=$cseId');
 
-    final prompt = '''
-I have the following information for a country: 
-Country: $country
-
-Please retrieve the e-waste generated data for $country from the website: https://globalewaste.org/statistics/country/$country/2022/
-Extract only the "e-waste generated per capita" value and return it.
-    ''';
-
-    final body = json.encode({
-      'model': 'text-davinci-003',
-      'prompt': prompt,
-      'max_tokens': 150,
-    });
-
-    final response = await http.post(url, headers: headers, body: body);
+    final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['choices'][0]['text'].toString().trim();
+
+      // Process the search result and extract the required information
+      if (data['items'] != null && data['items'].isNotEmpty) {
+        for (var item in data['items']) {
+          // Search through the items to find relevant information (adjust based on actual data structure)
+          final snippet = item['snippet'] ?? '';
+          if (snippet.contains('e-waste generated per capita')) {
+            print("Found e-waste data: $snippet");
+            return snippet; // Return the relevant snippet or data
+          }
+        }
+      }
+      return 'No relevant data found';
     } else {
-      throw Exception('Failed to get data from OpenAI');
+      print("Failed to get data from Google Custom Search: ${response.statusCode}");
+      throw Exception('Failed to get data from Google Custom Search');
     }
   }
 
-  // Reverse geocode: Get the country name based on coordinates
+  // Reverse geocode: Get the country name based on coordinates (latitude, longitude)
   Future<String> getCountryFromCoordinates(LatLng location) async {
-    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']; // Your Google Maps Geocoding API Key
+    print("Reverse geocoding location: Lat: ${location.latitude}, Lng: ${location.longitude}");
+
+    final apiKey =dotenv.env['GOOGLE_MAPS_API_KEY']; // Your Google Maps Geocoding API Key
     final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=$apiKey',
-    );
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=$apiKey');
 
     final response = await http.get(url);
 
@@ -117,18 +122,16 @@ Extract only the "e-waste generated per capita" value and return it.
         for (var result in data['results']) {
           for (var component in result['address_components']) {
             if (component['types'].contains('country')) {
+              print("Found country: ${component['long_name']}");
               return component['long_name'];
             }
           }
         }
-        // If we didn't find a 'country' in the address components
-        return 'Country not found';
-      } else {
-        // If no results were returned
-        return 'No results found';
       }
+      print("Country not found in reverse geocoding results.");
+      return 'Country not found';
     } else {
-      // If the status code isn't 200, throw an error
+      print("Error during reverse geocoding: ${response.statusCode}");
       throw Exception('Failed to get country from coordinates');
     }
   }

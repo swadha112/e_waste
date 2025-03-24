@@ -33,20 +33,28 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
 
   @override
   void dispose() {
+    debugPrint('Disposing controllers');
     _addressController.dispose();
     _pincodeController.dispose();
     super.dispose();
   }
 
   Future<void> _searchCenters() async {
+    debugPrint('Search started');
     setState(() {
       _isLoading = true;
       _centers.clear();
     });
 
-    final addressInput = '${_addressController.text}, ${_pincodeController.text}';
+    // Log the user input values
+    final addressText = _addressController.text;
+    final pincodeText = _pincodeController.text;
+    debugPrint('User input - Address: $addressText, Pincode: $pincodeText');
+
+    final addressInput = '$addressText, $pincodeText';
     // Use your new unrestricted API key here
-    final apiKey = dotenv.env['MAPS_API_KEY2'];
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    debugPrint('Using API key: $apiKey');
 
     try {
       // 1. Geocode the address -> lat/lng
@@ -60,18 +68,15 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
 
       final geoResponse = await http.get(geoUrl);
       final geoData = json.decode(geoResponse.body);
-
-      // Log the entire geocode response
-      debugPrint('Geocode response: ${geoData.toString()}');
+      debugPrint('Geocode response received: ${geoData.toString()}');
 
       if (geoData['status'] == 'OK' && geoData['results'].isNotEmpty) {
         final location = geoData['results'][0]['geometry']['location'];
         final lat = location['lat'];
         final lng = location['lng'];
-
         debugPrint('Parsed lat: $lat, lng: $lng');
 
-        // 2. Use Places Nearby Search for "recycling center" (example)
+        // 2. Use Places Nearby Search for "recycling center"
         final placesUrl = Uri.parse(
           'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
               '?location=$lat,$lng'
@@ -84,26 +89,28 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
 
         final nearbyResponse = await http.get(placesUrl);
         final nearbyData = json.decode(nearbyResponse.body);
-
-        // Log the entire places response
-        debugPrint('Nearby search response: ${nearbyData.toString()}');
+        debugPrint('Nearby search response received: ${nearbyData.toString()}');
 
         if (nearbyData['status'] == 'OK' && nearbyData['results'] != null) {
           final results = nearbyData['results'] as List<dynamic>;
-
-          // 3. For each place, fetch details (phone, full address)
           List<EwasteCenter> centers = [];
+
           for (var place in results) {
             final placeId = place['place_id'];
-            // Fetch details
-            final details = await _fetchPlaceDetails(placeId, apiKey);
+            debugPrint('Processing place with ID: $placeId');
 
-            // Some fields might be null if not provided
+            // Fetch detailed info for each place
+            final details = await _fetchPlaceDetails(placeId, apiKey);
+            debugPrint('Details received for placeId $placeId: ${details.toString()}');
+
+            // Use details when available, fallback to basic place info
             final name = details['name'] ?? place['name'] ?? 'Unknown Center';
             final address = details['formatted_address'] ??
                 place['vicinity'] ??
                 'No address available';
             final phoneNumber = details['formatted_phone_number'];
+
+            debugPrint('Center - Name: $name, Address: $address, Phone: $phoneNumber');
 
             centers.add(EwasteCenter(
               name: name,
@@ -115,8 +122,9 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
           setState(() {
             _centers = centers;
           });
+          debugPrint('Total centers found: ${centers.length}');
         } else {
-          // No results or error
+          // No results or error from Places API
           debugPrint('Places search returned status: ${nearbyData['status']}');
           debugPrint('Places search error_message: ${nearbyData['error_message']}');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -124,7 +132,7 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
           );
         }
       } else {
-        // Could not geocode
+        // Could not geocode the address
         debugPrint('Geocode returned status: ${geoData['status']}');
         debugPrint('Geocode error_message: ${geoData['error_message']}');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -140,11 +148,13 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
       setState(() {
         _isLoading = false;
       });
+      debugPrint('Search finished');
     }
   }
 
   // Helper to fetch place details for phone number, etc.
   Future<Map<String, dynamic>> _fetchPlaceDetails(String placeId, String? apiKey) async {
+    debugPrint('Fetching details for placeId: $placeId');
     final detailsUrl = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/details/json'
           '?place_id=$placeId'
@@ -156,9 +166,7 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
 
     final detailsResponse = await http.get(detailsUrl);
     final detailsData = json.decode(detailsResponse.body);
-
-    // Log the place details response
-    debugPrint('Place details for $placeId: ${detailsData.toString()}');
+    debugPrint('Place details response for $placeId: ${detailsData.toString()}');
 
     if (detailsData['status'] == 'OK') {
       return detailsData['result'] ?? {};
@@ -171,6 +179,7 @@ class _EwasteCentersPageState extends State<EwasteCentersPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('Building EwasteCentersPage widget');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Find E-waste Centers'),
