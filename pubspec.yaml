@@ -62,6 +62,8 @@ flutter:
     - assets/detection.json
     - assets/recycling_facility.json
     - assets/edrives.json
+    - assets/collective.json
+    - assets/personal.json
 
 
 flutter_icons:

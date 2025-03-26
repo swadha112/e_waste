@@ -91,7 +91,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               ),
             ),
             SizedBox(height: 12),
-
             _buildContributionItem(
               icon: Icons.recycling,
               title: 'Recycle Responsibly',
@@ -120,56 +119,92 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             SizedBox(height: 30),
 
             // -------------------------------------------------
-            // 3) Earn Rewards Section (Green Container)
+            // New Section: Disposal Options
             // -------------------------------------------------
-            _buildSection(
-              title: 'Earn Rewards for Recycling',
-              description: '📸 Scan an object to detect its recyclable and non-recyclable components.\n'
-                  '💰 Get price estimation for recycling valuable materials.\n'
-                  '🎁 Earn incentives for contributing to recycling centers.\n'
-                  '🌍 Reduce your carbon footprint by ensuring responsible disposal.',
-              animationPath: 'assets/detection.json',
-              buttonText: 'Try Object Detection',
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => DetectionPage()));
-              },
-              reverse: false, // Animation on Right
+            Text(
+              'Looking for a way to dispose?',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[800],
+              ),
             ),
-            SizedBox(height: 30),
-
-            // -------------------------------------------------
-            // 4) Locate Nearby Recycling Facilities
-            // -------------------------------------------------
-            _buildSection(
-              title: 'Locate Nearby Recycling Facilities',
-              description: '🔍 Find nearby certified recycling centers with ease.\n'
-                  '📦 Drop off your old electronics or schedule a pickup.\n'
-                  '🌱 Ensure proper recycling of materials to reduce waste and pollution.',
-              animationPath: 'assets/recycling_facility.json',
-              buttonText: 'Find Facilities',
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => EwasteCentersPage()));
-              },
-              reverse: true, // Animation on Left
+            SizedBox(height: 12),
+            Row(
+              children: [
+                // Personal Disposal Card
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.green[800],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Lottie.asset('assets/personal.json', height: 100),
+                        SizedBox(height: 10),
+                        Text(
+                          'Personal Disposal',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white, foregroundColor: Colors.green),
+                          onPressed: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) => DetectionPage()));
+                          },
+                          child: Text(' Start with Object Detection', textAlign: TextAlign.center,),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 20),
+                // Collective Disposal Card
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.green[800],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Lottie.asset('assets/collective.json', height: 100),
+                        SizedBox(height: 10),
+                        Text(
+                          'Collective Disposal',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white, foregroundColor: Colors.green),
+                          onPressed: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) => EDrivesPage()));
+                          },
+                          child: Text('Schedule a Drive'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 30),
-
-            // -------------------------------------------------
-            // 5) Participate in E-Drives
-            // -------------------------------------------------
-            _buildSection(
-              title: 'Participate in E-Drives',
-              description: '📅 Join organized e-waste collection drives in your area.\n'
-                  '🤝 Connect with communities supporting sustainable waste management.\n'
-                  '🏆 Earn rewards, incentives, and contribute to a cleaner planet.',
-              animationPath: 'assets/edrives.json',
-              buttonText: 'Join E-Drives',
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => EDrivesPage()));
-              },
-              reverse: false, // Animation on Right
-            ),
-            SizedBox(height: 30),
 
             // -------------------------------------------------
             // 6) YouTube Video Section
@@ -205,7 +240,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
         ),
         child: Column(
           children: [
-            Lottie.asset(animationPath, height: 50), // Lottie animation
+            Lottie.asset(animationPath, height: 50),
             SizedBox(height: 5),
             Text(
               title,
@@ -223,65 +258,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
   }
 
   // -----------------------------
-  // Section Builder (Green Box)
-  // -----------------------------
-  Widget _buildSection({
-    required String title,
-    required String description,
-    required String animationPath,
-    required String buttonText,
-    required VoidCallback onPressed,
-    required bool reverse,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.green[800], // Green background
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: reverse
-            ? [
-          // Animation on Left
-          Expanded(child: Lottie.asset(animationPath, height: 200)),
-          SizedBox(width: 20),
-          Expanded(child: _textBlock(title, description, buttonText, onPressed)),
-        ]
-            : [
-          // Animation on Right
-          Expanded(child: _textBlock(title, description, buttonText, onPressed)),
-          SizedBox(width: 20),
-          Expanded(child: Lottie.asset(animationPath, height: 200)),
-        ],
-      ),
-    );
-  }
-
-  // -----------------------------
-  // Text Block with Button
-  // -----------------------------
-  Widget _textBlock(String title, String description, String buttonText, VoidCallback onPressed) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        SizedBox(height: 10),
-        Text(description, style: TextStyle(fontSize: 14, color: Colors.white70)),
-        SizedBox(height: 15),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.green),
-          onPressed: onPressed,
-          child: Text(buttonText),
-        ),
-      ],
-    );
-  }
-
-  // -----------------------------
   // "Ways You Can Contribute" Item
   // -----------------------------
   Widget _buildContributionItem({
@@ -293,7 +269,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
       margin: EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white, // or a light shade
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -306,19 +282,16 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon on the left
           Icon(
             icon,
             size: 30,
             color: Colors.green,
           ),
           SizedBox(width: 16),
-          // Title + Subtitle in a column
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title in bold
                 Text(
                   title,
                   style: TextStyle(
@@ -328,7 +301,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                   ),
                 ),
                 SizedBox(height: 6),
-                // Subtitle
                 Text(
                   subtitle,
                   style: TextStyle(fontSize: 14, color: Colors.grey[700]),
