@@ -6,6 +6,7 @@ import 'package:e_waste/detection_page.dart';
 import 'package:e_waste/recycling_center.dart';
 import 'package:e_waste/edrives.dart';
 
+/// Model for Scheduled Disposal (from 'scheduled_disposals' collection)
 class ScheduledDisposal {
   final String centerName;
   final String centerAddress;
@@ -35,6 +36,35 @@ class ScheduledDisposal {
   }
 }
 
+/// Model for Pickup Request (E‑Drive) from 'pickup_requests' collection
+class PickupRequestDashboard {
+  final String name;
+  final String contact;
+  final DateTime scheduledDateTime;
+  final String pickupFor;
+  final String status;
+
+  PickupRequestDashboard({
+    required this.name,
+    required this.contact,
+    required this.scheduledDateTime,
+    required this.pickupFor,
+    required this.status,
+  });
+
+  factory PickupRequestDashboard.fromDocument(Map<String, dynamic> doc) {
+    // Assuming scheduledDateTime is saved as an ISO8601 string.
+    return PickupRequestDashboard(
+      name: doc['name'] ?? '',
+      contact: doc['contact'] ?? '',
+      scheduledDateTime: doc['scheduledDateTime'] != null
+          ? DateTime.parse(doc['scheduledDateTime'])
+          : DateTime.now(),
+      pickupFor: doc['pickupFor'] ?? '',
+      status: doc['status'] ?? 'Pending',
+    );
+  }
+}
 
 class HowCanYouHelpPage extends StatefulWidget {
   @override
@@ -43,7 +73,6 @@ class HowCanYouHelpPage extends StatefulWidget {
 
 class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
   late YoutubePlayerController _youtubeController;
-  List<ScheduledDisposal> _scheduledDisposals = [];
 
   @override
   void initState() {
@@ -52,20 +81,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
       initialVideoId: 'FoSc5h4yxHc',
       flags: YoutubePlayerFlags(autoPlay: false, mute: false),
     );
-    _loadScheduledDisposals();
-  }
-
-  Future<void> _loadScheduledDisposals() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('scheduled_disposals')
-        .orderBy('timestamp', descending: true)
-        .get();
-
-    setState(() {
-      _scheduledDisposals = snapshot.docs
-          .map((doc) => ScheduledDisposal.fromDocument(doc.data()))
-          .toList();
-    });
   }
 
   @override
@@ -74,8 +89,178 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
     super.dispose();
   }
 
+  /// Stream builder for Scheduled Disposals
+  Widget _buildScheduledDisposalsSection() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('scheduled_disposals')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+          return Text('No disposals scheduled yet.');
+        final docs = snapshot.data!.docs;
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final data = docs[index].data() as Map<String, dynamic>;
+            final disposal = ScheduledDisposal.fromDocument(data);
+            final statusText = disposal.status == "Pending"
+                ? "Pickup Pending"
+                : "Successful";
+            return Card(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                title: Text(disposal.centerName),
+                subtitle: Text(
+                  '${disposal.centerAddress}\n📦 ${disposal.objectChosen} • ₹${disposal.price.toStringAsFixed(2)}\n🕒 ${disposal.timestamp.toLocal()}\n📌 Status: $statusText',
+                ),
+                isThreeLine: true,
+                leading: Icon(Icons.location_on, color: Colors.green),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Stream builder for Pickup Requests (E-Drive)
+  Widget _buildPickupRequestsSection() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('pickup_requests')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+          return Text('No E-Drive scheduled yet.');
+        final docs = snapshot.data!.docs;
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final data = docs[index].data() as Map<String, dynamic>;
+            final pickup = PickupRequestDashboard.fromDocument(data);
+            final statusText = pickup.status == "Pending"
+                ? "Pickup Pending"
+                : "Successful";
+            return Card(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                title: Text(pickup.name),
+                subtitle: Text(
+                  'Contact: ${pickup.contact}\nScheduled: ${pickup.scheduledDateTime.toLocal()}\nPickup For: ${pickup.pickupFor}\nStatus: $statusText',
+                ),
+                isThreeLine: true,
+                leading: Icon(Icons.drive_eta, color: Colors.blue),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _infoCard(String title, String value, String animationPath) {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.all(12),
+        margin: EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 2)
+          ],
+        ),
+        child: Column(
+          children: [
+            Lottie.asset(animationPath, height: 50),
+            SizedBox(height: 5),
+            Text(
+              title,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[800]),
+            ),
+            SizedBox(height: 5),
+            Text(
+              value,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContributionItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 30,
+            color: Colors.green,
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.green[900]),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final buttonColor = Colors.green[400];
     return Scaffold(
       appBar: AppBar(
         title: Text('How Can You Help'),
@@ -133,21 +318,21 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               ),
             ),
             SizedBox(height: 10),
-            if (_scheduledDisposals.isEmpty)
-              Text('No disposals scheduled yet.'),
-            ..._scheduledDisposals.map((disposal) {
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 8),
-                child: ListTile(
-                  title: Text(disposal.centerName),
-                  subtitle: Text(
-                    '${disposal.centerAddress}\n📦 ${disposal.objectChosen} • ₹${disposal.price.toStringAsFixed(2)}\n🕒 ${disposal.timestamp.toLocal()}\n📌 Status: ${disposal.status}',
-                  ),
-                  isThreeLine: true,
-                  leading: Icon(Icons.location_on, color: Colors.green),
-                ),
-              );
-            }),
+            _buildScheduledDisposalsSection(),
+
+            SizedBox(height: 20),
+
+            // E-Drive / Pickup Requests Section
+            Text(
+              'Your Scheduled E-Drive',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[800],
+              ),
+            ),
+            SizedBox(height: 10),
+            _buildPickupRequestsSection(),
 
             SizedBox(height: 20),
 
@@ -201,6 +386,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             SizedBox(height: 12),
             Row(
               children: [
+                // Personal Disposal Card
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.all(16),
@@ -228,9 +414,9 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                               foregroundColor: Colors.green),
                           onPressed: () {
                             Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => DetectionPage()));
+                              context,
+                              MaterialPageRoute(builder: (context) => DetectionPage()),
+                            );
                           },
                           child: Text('Start with Object Detection'),
                         ),
@@ -239,6 +425,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                   ),
                 ),
                 SizedBox(width: 20),
+                // Collective Disposal Card
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.all(16),
@@ -266,9 +453,9 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                               foregroundColor: Colors.green),
                           onPressed: () {
                             Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => SchedulePickupPage()));
+                              context,
+                              MaterialPageRoute(builder: (context) => SchedulePickupPage()),
+                            );
                           },
                           child: Text('Schedule a Drive'),
                         ),
@@ -294,88 +481,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             SizedBox(height: 30),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _infoCard(String title, String value, String animationPath) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(12),
-        margin: EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 2)],
-        ),
-        child: Column(
-          children: [
-            Lottie.asset(animationPath, height: 50),
-            SizedBox(height: 5),
-            Text(
-              title,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green[800]),
-            ),
-            SizedBox(height: 5),
-            Text(
-              value,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContributionItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            size: 30,
-            color: Colors.green,
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.green[900],
-                  ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
