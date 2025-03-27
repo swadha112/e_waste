@@ -1,9 +1,40 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:e_waste/detection_page.dart';
 import 'package:e_waste/recycling_center.dart';
 import 'package:e_waste/edrives.dart';
+
+class ScheduledDisposal {
+  final String centerName;
+  final String centerAddress;
+  final String objectChosen;
+  final double price;
+  final DateTime timestamp;
+  final String status;
+
+  ScheduledDisposal({
+    required this.centerName,
+    required this.centerAddress,
+    required this.objectChosen,
+    required this.price,
+    required this.timestamp,
+    required this.status,
+  });
+
+  factory ScheduledDisposal.fromDocument(Map<String, dynamic> doc) {
+    return ScheduledDisposal(
+      centerName: doc['centerName'] ?? 'Unknown',
+      centerAddress: doc['centerAddress'] ?? 'No address',
+      objectChosen: doc['objectChosen'] ?? '',
+      price: (doc['price'] ?? 0).toDouble(),
+      timestamp: (doc['timestamp'] as Timestamp).toDate(),
+      status: doc['status'] ?? 'Pending',
+    );
+  }
+}
+
 
 class HowCanYouHelpPage extends StatefulWidget {
   @override
@@ -12,14 +43,29 @@ class HowCanYouHelpPage extends StatefulWidget {
 
 class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
   late YoutubePlayerController _youtubeController;
+  List<ScheduledDisposal> _scheduledDisposals = [];
 
   @override
   void initState() {
     super.initState();
     _youtubeController = YoutubePlayerController(
-      initialVideoId: 'FoSc5h4yxHc', // Replace with actual YouTube video ID
+      initialVideoId: 'FoSc5h4yxHc',
       flags: YoutubePlayerFlags(autoPlay: false, mute: false),
     );
+    _loadScheduledDisposals();
+  }
+
+  Future<void> _loadScheduledDisposals() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('scheduled_disposals')
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    setState(() {
+      _scheduledDisposals = snapshot.docs
+          .map((doc) => ScheduledDisposal.fromDocument(doc.data()))
+          .toList();
+    });
   }
 
   @override
@@ -40,9 +86,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // -------------------------------------------------
-            // 1) User Dashboard
-            // -------------------------------------------------
+            // Dashboard Header
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -53,7 +97,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Hello, Swadha!', // Replace with dynamic username
+                    'Hello, Swadha!', // Replace with dynamic username if needed
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -62,7 +106,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                   ),
                   SizedBox(height: 5),
                   Text(
-                    '📍 Location: Mumbai', // Replace with dynamic location
+                    '📍 Location: Mumbai',
                     style: TextStyle(fontSize: 16, color: Colors.white70),
                   ),
                   SizedBox(height: 10),
@@ -79,9 +123,35 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             ),
             SizedBox(height: 20),
 
-            // -------------------------------------------------
-            // 2) Ways You Can Contribute (RIGHT BELOW DASHBOARD)
-            // -------------------------------------------------
+            // Scheduled Disposals Section
+            Text(
+              'Your Scheduled Disposals',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[800],
+              ),
+            ),
+            SizedBox(height: 10),
+            if (_scheduledDisposals.isEmpty)
+              Text('No disposals scheduled yet.'),
+            ..._scheduledDisposals.map((disposal) {
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8),
+                child: ListTile(
+                  title: Text(disposal.centerName),
+                  subtitle: Text(
+                    '${disposal.centerAddress}\n📦 ${disposal.objectChosen} • ₹${disposal.price.toStringAsFixed(2)}\n🕒 ${disposal.timestamp.toLocal()}\n📌 Status: ${disposal.status}',
+                  ),
+                  isThreeLine: true,
+                  leading: Icon(Icons.location_on, color: Colors.green),
+                ),
+              );
+            }),
+
+            SizedBox(height: 20),
+
+            // Ways to Contribute
             Text(
               'Ways You Can Contribute',
               style: TextStyle(
@@ -116,11 +186,10 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               title: 'Spread Awareness',
               subtitle: 'Educate your community about responsible e-waste disposal methods.',
             ),
+
             SizedBox(height: 30),
 
-            // -------------------------------------------------
-            // New Section: Disposal Options
-            // -------------------------------------------------
+            // Disposal Options
             Text(
               'Looking for a way to dispose?',
               style: TextStyle(
@@ -132,7 +201,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
             SizedBox(height: 12),
             Row(
               children: [
-                // Personal Disposal Card
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.all(16),
@@ -156,19 +224,21 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                         SizedBox(height: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white, foregroundColor: Colors.green),
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.green),
                           onPressed: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) => DetectionPage()));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => DetectionPage()));
                           },
-                          child: Text(' Start with Object Detection', textAlign: TextAlign.center,),
+                          child: Text('Start with Object Detection'),
                         ),
                       ],
                     ),
                   ),
                 ),
                 SizedBox(width: 20),
-                // Collective Disposal Card
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.all(16),
@@ -192,10 +262,13 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                         SizedBox(height: 10),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white, foregroundColor: Colors.green),
+                              backgroundColor: Colors.white,
+                              foregroundColor: Colors.green),
                           onPressed: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) => EDrivesPage()));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => SchedulePickupPage()));
                           },
                           child: Text('Schedule a Drive'),
                         ),
@@ -206,9 +279,9 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               ],
             ),
 
-            // -------------------------------------------------
-            // 6) YouTube Video Section
-            // -------------------------------------------------
+            SizedBox(height: 30),
+
+            // YouTube Section
             Text(
               'Watch this video for tips on efficient e-waste management:',
               style: TextStyle(fontSize: 16),
@@ -225,9 +298,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
     );
   }
 
-  // -----------------------------
-  // Dashboard Info Cards
-  // -----------------------------
   Widget _infoCard(String title, String value, String animationPath) {
     return Expanded(
       child: Container(
@@ -257,9 +327,6 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
     );
   }
 
-  // -----------------------------
-  // "Ways You Can Contribute" Item
-  // -----------------------------
   Widget _buildContributionItem({
     required IconData icon,
     required String title,

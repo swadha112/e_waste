@@ -132,7 +132,9 @@ class _FindCentresPageState extends State<FindCentresPage> {
         'objectChosen': widget.objectChosen,
         'price': widget.objectPrice,
         'timestamp': FieldValue.serverTimestamp(),
+        'status': 'Pending', // 👈 Add this field
       });
+
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Drop-off location confirmed: ${drive.title}')),

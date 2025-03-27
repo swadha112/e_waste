@@ -1,27 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter/services.dart'; // For clipboard
-import 'package:lottie/lottie.dart'; // For Lottie animations
-import 'package:url_launcher/url_launcher.dart'; // For launching URLs
-import 'centerSelection.dart'; // adjust path as needed
-
-
-// --- Model for E-Waste Drives from SERP API ---
-class EwasteDrive {
-  final String title;
-  final String address;
-  final String? detailsLink; // e.g. maps URL or website if available
-
-  EwasteDrive({
-    required this.title,
-    required this.address,
-    this.detailsLink,
-  });
-}
+import 'package:lottie/lottie.dart';
+import 'centerSelection.dart'; // Adjust path as needed
 
 // --- Model for Pickup Request Form Data ---
 class PickupRequest {
@@ -36,7 +16,7 @@ class PickupRequest {
   final DateTime scheduledDateTime;
   final String frequency;
   final int approxPeople;
-  final String pickupFor; // "Self", "Building", "Locality"
+  final String pickupFor; // Now only "Building" or "Locality"
   final String couponCode;
   final int rewardPoints;
 
@@ -78,190 +58,10 @@ class PickupRequest {
   }
 }
 
-// --- Main Page: EDrivesPage ---
-class EDrivesPage extends StatefulWidget {
-  const EDrivesPage({Key? key}) : super(key: key);
-
-  @override
-  State<EDrivesPage> createState() => _EDrivesPageState();
-}
-
-class _EDrivesPageState extends State<EDrivesPage> {
-  final TextEditingController _areaController = TextEditingController();
-  bool _isLoading = false;
-  List<EwasteDrive> _drives = [];
-
-  @override
-  void dispose() {
-    _areaController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _searchDrives() async {
-    setState(() {
-      _isLoading = true;
-      _drives.clear();
-    });
-    final areaInput = _areaController.text;
-    final apiKey = dotenv.env['SERP_API_KEY'];
-    // Query tailored for e-waste drives
-    final query = 'e-waste drive near $areaInput';
-    final encodedQuery = Uri.encodeComponent(query);
-    final serpUrl = Uri.parse(
-      'https://serpapi.com/search.json?engine=google_maps&q=$encodedQuery&api_key=$apiKey',
-    );
-    debugPrint('SERP API Drive request URL: $serpUrl');
-    try {
-      final response = await http.get(serpUrl);
-      final data = json.decode(response.body);
-      debugPrint('SERP API Drive response: ${data.toString()}');
-      if (data['local_results'] != null) {
-        final results = data['local_results'] as List;
-        List<EwasteDrive> drives = [];
-        for (var result in results) {
-          final title = result['title'] ?? 'Unknown Drive';
-          final address = result['address'] ?? 'No address available';
-          // Use maps_url or link as a fallback.
-          final detailsLink = (result['maps_url'] != null && result['maps_url'].toString().isNotEmpty)
-              ? result['maps_url']
-              : (result['link'] ?? null);
-          drives.add(EwasteDrive(title: title, address: address, detailsLink: detailsLink));
-        }
-        setState(() {
-          _drives = drives;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No e-waste drives found in this area.')),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error during SERP API drive request: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-      // Show the pop-up card after search completes.
-      _showContributionPopup();
-    }
-  }
-
-  void _showContributionPopup() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Contribute to the Earth!"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Lottie.asset('assets/lottie/recycling.json', height: 100),
-              const SizedBox(height: 8),
-              const Text("Wanna take the initiative and schedule an e-waste drive or pickup in your area?"),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // close dialog
-                // Navigate to the scheduling form
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SchedulePickupPage()),
-                );
-              },
-              child: const Text("Yes, I'm interested"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("No, not today"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cardColor = Colors.lightGreen[100];
-    final buttonColor = Colors.green[800];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("E-Waste Drives Near You"),
-        backgroundColor: buttonColor,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _areaController,
-              decoration: const InputDecoration(
-                labelText: 'Enter Area/Address',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: buttonColor),
-              onPressed: _isLoading ? null : _searchDrives,
-              child: _isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text('Search Drives'),
-            ),
-            const SizedBox(height: 20),
-            if (_drives.isNotEmpty)
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _drives.length,
-                itemBuilder: (context, index) {
-                  final drive = _drives[index];
-                  return Card(
-                    color: cardColor,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(drive.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(drive.address),
-                      trailing: drive.detailsLink != null
-                          ? IconButton(
-                        icon: const Icon(Icons.open_in_new),
-                        color: buttonColor,
-                        onPressed: () => launchUrl(Uri.parse(drive.detailsLink!),
-                            mode: LaunchMode.externalApplication),
-                      )
-                          : null,
-                    ),
-                  );
-                },
-              )
-            else if (!_isLoading)
-              const Text('No drives found.'),
-            const SizedBox(height: 20),
-            // Persistent button for scheduling a drive/pickup.
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(backgroundColor: buttonColor),
-              icon: const Icon(Icons.event_available),
-              label: const Text('Schedule an E-Waste Pickup/Drive'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SchedulePickupPage()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+void main() {
+  runApp(const MaterialApp(
+    home: SchedulePickupPage(),
+  ));
 }
 
 // --- Schedule Pickup / Drive Form Page ---
@@ -288,12 +88,20 @@ class _SchedulePickupPageState extends State<SchedulePickupPage> {
 
   DateTime? _selectedDateTime;
   String _frequency = 'One time only';
-  String _pickupFor = 'Self';
+  String _pickupFor = 'Building'; // Default to one of the available options.
 
   // Frequency options.
-  final List<String> _frequencyOptions = ['One time only', 'Once a month', 'Once in 3 months'];
-  // Pickup for options.
-  final List<String> _pickupForOptions = ['Self', 'Building', 'Locality'];
+  final List<String> _frequencyOptions = [
+    'One time only',
+    'Once a month',
+    'Once in 3 months'
+  ];
+
+  // Pickup for options (removed "Self").
+  final List<String> _pickupForOptions = [
+    'Building',
+    'Locality'
+  ];
 
   // Method to pick date and time.
   Future<void> _pickDateTime() async {
@@ -394,7 +202,6 @@ class _SchedulePickupPageState extends State<SchedulePickupPage> {
             );
           },
         );
-
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Submission error: $e')),

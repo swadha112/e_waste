@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'edrives.dart';
+import 'findCentres.dart';
 
 class CenterSelectionPage extends StatefulWidget {
   final PickupRequest request;
@@ -42,7 +43,7 @@ class _CenterSelectionPageState extends State<CenterSelectionPage> {
           return EwasteDrive(
             title: center['title'] ?? 'Unknown Center',
             address: center['address'] ?? 'No address available',
-            detailsLink: center['maps_url'],
+            //detailsLink: center['maps_url'],
           );
         }).toList();
         _isLoading = false;
