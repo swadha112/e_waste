@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart'; // For clipboard
 import 'package:lottie/lottie.dart'; // For Lottie animations
 import 'package:url_launcher/url_launcher.dart'; // For launching URLs
+import 'centerSelection.dart'; // adjust path as needed
+
 
 // --- Model for E-Waste Drives from SERP API ---
 class EwasteDrive {
@@ -370,7 +372,7 @@ class _SchedulePickupPageState extends State<SchedulePickupPage> {
                   Lottie.asset('assets/lottie/success.json', height: 150),
                   const SizedBox(height: 8),
                   const Text(
-                    "Hooray, our pick-up guy will be at your doorstep on the selected date and time. Be ready with all your old e-waste and leave the rest to us!",
+                    "Pickup scheduled! You'll now be shown nearby centers to finalize the drive.",
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -378,16 +380,21 @@ class _SchedulePickupPageState extends State<SchedulePickupPage> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context)
-                      ..pop() // close dialog
-                      ..pop(); // go back to previous page
+                    Navigator.of(context).pop(); // close dialog
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CenterSelectionPage(request: request),
+                      ),
+                    );
                   },
-                  child: const Text("OK"),
+                  child: const Text("Continue"),
                 ),
               ],
             );
           },
         );
+
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Submission error: $e')),
