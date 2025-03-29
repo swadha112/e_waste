@@ -310,11 +310,16 @@ Please classify its components as requested, in valid JSON only.
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () {
+                        final objectName = _parsedResult?["objectName"] ?? widget.objectName;
+                        final price = _totalPrice ?? 0.0;
                         // Navigate to personal drive scheduling (unchanged)
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const PersonalDrivePage(),
+                            builder: (context) =>  PersonalDrivePage(
+                              objectChosen: objectName.toString(),
+                              objectPrice: price,
+                            ),
                           ),
                         );
                       },

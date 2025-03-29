@@ -11,7 +11,7 @@ class EwasteDrive {
   final String title;
   final String address;
   final String? mapLink;  // Google Maps link (either maps_url or fallback)
-  final String? phone;    // phone number
+  final String? phone;  // phone number
   final String? website;  // website URL
 
   EwasteDrive({
@@ -125,7 +125,7 @@ class _FindCentresPageState extends State<FindCentresPage> {
   /// Method to confirm a drop-off location and store details in Firestore
   Future<void> _confirmDropOff(EwasteDrive drive) async {
     try {
-      await FirebaseFirestore.instance.collection('scheduled_disposals').add({
+      await FirebaseFirestore.instance.collection('scheduled_dropoff').add({
         'centerName': drive.title,
         'centerAddress': drive.address,
         'mapLink': drive.mapLink ?? '',
