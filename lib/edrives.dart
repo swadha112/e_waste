@@ -19,6 +19,7 @@ class PickupRequest {
   final String pickupFor; // Now only "Building" or "Locality"
   final String couponCode;
   final int rewardPoints;
+  final String status;
 
   PickupRequest({
     required this.name,
@@ -35,6 +36,7 @@ class PickupRequest {
     required this.pickupFor,
     required this.couponCode,
     required this.rewardPoints,
+    this.status = "pending",
   });
 
   Map<String, dynamic> toMap() {
@@ -53,6 +55,7 @@ class PickupRequest {
       'pickupFor': pickupFor,
       'couponCode': couponCode,
       'rewardPoints': rewardPoints,
+      'status': status,
       'timestamp': FieldValue.serverTimestamp(),
     };
   }
@@ -153,13 +156,19 @@ class _SchedulePickupPageState extends State<SchedulePickupPage> {
         pickupFor: _pickupFor,
         couponCode: couponCode,
         rewardPoints: rewardPoints,
+
       );
 
       try {
         // Save form data in Firestore.
-        await FirebaseFirestore.instance
+        final docRef = await FirebaseFirestore.instance
             .collection('pickup_requests')
-            .add(request.toMap());
+            .add({
+          ...request.toMap(),
+          'status': 'pending', // Adding status here.
+        });
+
+        final pickupRequestId = docRef.id;
 
         // Optionally, store incentive data in a separate collection.
         await FirebaseFirestore.instance.collection('incentives').add({
@@ -192,7 +201,10 @@ class _SchedulePickupPageState extends State<SchedulePickupPage> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => CenterSelectionPage(request: request),
+                        builder: (_) => CenterSelectionPage(
+                          request: request,
+                          pickupRequestId: pickupRequestId, // Pass the doc id here.
+                        ),
                       ),
                     );
                   },

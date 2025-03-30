@@ -3,6 +3,7 @@ import 'package:lottie/lottie.dart';
 import 'package:e_waste/harmful_effects.dart';
 import 'package:e_waste/global_efforts.dart';
 import 'package:e_waste/how_u_help.dart';
+import 'dashboard.dart'; // Make sure dashboard.dart is in your project
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -73,12 +74,13 @@ class HomePage extends StatelessWidget {
               context: context,
               title: 'Harmful Effects of E-Waste',
               content:
-                  'E-waste releases toxic substances like lead, mercury, and cadmium into the environment, affecting human health, contaminating soil and water, and disrupting ecosystems.',
+              'E-waste releases toxic substances like lead, mercury, and cadmium into the environment, affecting human health, contaminating soil and water, and disrupting ecosystems.',
               animationPath: 'assets/effects.json',
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HarmfulEffectsPage()),
+                  MaterialPageRoute(
+                      builder: (context) => HarmfulEffectsPage()),
                 );
               },
             ),
@@ -86,12 +88,13 @@ class HomePage extends StatelessWidget {
               context: context,
               title: 'Global Efforts on E-Waste Management',
               content:
-                  'Governments are enforcing stricter regulations, companies are adopting eco-friendly disposal, and e-waste recycling plants are growing globally.',
+              'Governments are enforcing stricter regulations, companies are adopting eco-friendly disposal, and e-waste recycling plants are growing globally.',
               animationPath: 'assets/gov.json',
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => GlobalEffortsPage()),
+                  MaterialPageRoute(
+                      builder: (context) => GlobalEffortsPage()),
                 );
               },
             ),
@@ -99,7 +102,7 @@ class HomePage extends StatelessWidget {
               context: context,
               title: 'How Can You Help?',
               content:
-                  '1. Recycle old electronics responsibly.\n'
+              '1. Recycle old electronics responsibly.\n'
                   '2. Donate used gadgets to those in need.\n'
                   '3. Participate in e-waste collection drives.\n'
                   '4. Buy refurbished electronics to reduce demand for new production.',
@@ -107,10 +110,29 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HowCanYouHelpPage()),
+                  MaterialPageRoute(
+                      builder: (context) => HowCanYouHelpPage()),
                 );
               },
             ),
+            SizedBox(height: 30),
+            // Dashboard button to check pickup_requests
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DashboardPage(
+                        userContact: '9769338461', // Replace with actual user contact if available
+                      ),
+                    ),
+                  );
+                },
+                child: Text("Go to Dashboard"),
+              ),
+            ),
+            SizedBox(height: 30),
           ],
         ),
       ),
@@ -137,7 +159,7 @@ class HomePage extends StatelessWidget {
               children: [
                 Text(title,
                     style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 Icon(Icons.arrow_forward, color: Colors.green),
               ],
             ),

@@ -19,9 +19,9 @@ exports.sendWhatsAppMessage = onRequest(
       return res.status(405).send("Method Not Allowed");
     }
 
-    const { messageBody, userContact, sessionId, disposalId } = req.body;
+    const { messageBody, userContact, sessionId, pickupRequestId } = req.body;
 
-    if (!messageBody || !userContact || !sessionId || !disposalId) {
+    if (!messageBody || !userContact || !sessionId || !pickupRequestId) {
       return res.status(400).send("Missing required fields");
     }
 
@@ -39,7 +39,7 @@ exports.sendWhatsAppMessage = onRequest(
         confirmed: false,
         replied: false,
         timestamp: new Date(),
-        disposalId: disposalId, // Link session to the disposal
+        pickupRequestId: pickupRequestId, // Link session to the pickup request
       });
 
       return res.status(201).send({ message: "Message sent", sid: message.sid });
@@ -51,46 +51,53 @@ exports.sendWhatsAppMessage = onRequest(
 );
 
 exports.handleWhatsAppReply = onRequest({ timeoutSeconds: 30 }, async (req, res) => {
-  const message = req.body.Body?.trim();
-  const from = req.body.From;
+  let message = req.body.Body?.trim(); // e.g., "1" or "2"
+  let from = req.body.From;            // always "whatsapp:+919769338461"
+
+  from = from.replace(/\s+/g, '');
 
   if (!message || !from) {
     return res.status(400).send("Missing required fields");
   }
 
-  const isConfirmed = message === "1";
+  // Determine confirmation based on the reply ("1" for confirmation, "2" for rejection)
+  const isConfirmed = (message === "1");
 
   try {
+    // Query for the most recent pending session (replied == false) for this center
     const snapshot = await admin.firestore()
       .collection("sessions")
       .where("from", "==", from)
-      .orderBy("timestamp", "desc")
+      .where("replied", "==", false)
+      .orderBy("timestamp", "desc") // Most recent pending session first
       .limit(1)
       .get();
 
     if (snapshot.empty) {
-      return res.status(404).send("No matching session");
+      return res.status(404).send("No matching pending session found");
     }
 
     const sessionDoc = snapshot.docs[0];
     const sessionRef = sessionDoc.ref;
     const sessionData = sessionDoc.data();
 
-    // Update session status
+    // Update the session to indicate that a reply has been received
     await sessionRef.update({
       confirmed: isConfirmed,
       replied: true,
     });
 
-    // If confirmed, update the status in scheduled_disposals
-    if (isConfirmed && sessionData.disposalId) {
-      const disposalRef = admin.firestore().collection("scheduled_disposals").doc(sessionData.disposalId);
-      await disposalRef.update({ status: "Successful" });
-
-      console.log("✅ Disposal status updated to Successful for:", sessionData.disposalId);
+    // Update the corresponding pickup_request using the stored pickupRequestId
+    if (sessionData.pickupRequestId) {
+      const requestRef = admin.firestore().collection("pickup_requests").doc(sessionData.pickupRequestId);
+      const newStatus = isConfirmed ? "successful" : "unavailable";
+      await requestRef.update({ status: newStatus });
+      console.log(`✅ Pickup request ${sessionData.pickupRequestId} updated to ${newStatus}`);
+    } else {
+      console.warn("No pickupRequestId found in the session document");
     }
 
-    return res.status(200).send("Reply received");
+    return res.status(200).send("Reply received and processed");
   } catch (error) {
     console.error("❌ handleWhatsAppReply error:", error);
     return res.status(500).send("Internal Server Error");

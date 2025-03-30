@@ -11,7 +11,8 @@ import 'findCentres.dart';
 
 class CenterSelectionPage extends StatefulWidget {
   final PickupRequest request;
-  const CenterSelectionPage({super.key, required this.request});
+  final String pickupRequestId;
+  const CenterSelectionPage({super.key, required this.request, required this.pickupRequestId,});
 
   @override
   State<CenterSelectionPage> createState() => _CenterSelectionPageState();
@@ -78,6 +79,7 @@ Reply:
     print("messageBody: $messageBody");
     print("userContact: whatsapp:${widget.request.contact}");
     print("sessionId: $sessionId");
+    print("pickupReqId: $widget.pickupRequestId");
 
     final response = await http.post(
       url,
@@ -85,7 +87,8 @@ Reply:
       body: json.encode({
         'messageBody': messageBody,
         'sessionId': sessionId,
-        'userContact': 'whatsapp:${widget.request.contact}'
+        'userContact': 'whatsapp:${widget.request.contact}',
+        'pickupRequestId': widget.pickupRequestId,
       }),
     );
 
