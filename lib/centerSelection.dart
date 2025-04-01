@@ -1,5 +1,5 @@
 // ============================
-// Flutter: CenterSelectionPage.dart
+// Flutter: CenterSelectionPage.dart (Modified for Unified Flow)
 // ============================
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,8 +11,12 @@ import 'findCentres.dart';
 
 class CenterSelectionPage extends StatefulWidget {
   final PickupRequest request;
-  final String pickupRequestId;
-  const CenterSelectionPage({super.key, required this.request, required this.pickupRequestId,});
+  final String pickupRequestId; // This is the document ID for collective drive
+  const CenterSelectionPage({
+    super.key,
+    required this.request,
+    required this.pickupRequestId,
+  });
 
   @override
   State<CenterSelectionPage> createState() => _CenterSelectionPageState();
@@ -44,7 +48,6 @@ class _CenterSelectionPageState extends State<CenterSelectionPage> {
           return EwasteDrive(
             title: center['title'] ?? 'Unknown Center',
             address: center['address'] ?? 'No address available',
-            //detailsLink: center['maps_url'],
           );
         }).toList();
         _isLoading = false;
@@ -57,7 +60,8 @@ class _CenterSelectionPageState extends State<CenterSelectionPage> {
 
   Future<void> _sendPickupMessage(EwasteDrive center) async {
     final url = Uri.parse(
-        "https://us-central1-e-waste-453420.cloudfunctions.net/sendWhatsAppMessage");
+        "https://us-central1-e-waste-453420.cloudfunctions.net/sendWhatsAppMessage"
+    );
     final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
     final messageBody = '''
 📦 E-Waste Pickup Scheduled
@@ -74,13 +78,13 @@ Reply:
 ''';
     print("📤 Sending POST to $url");
     print("📦 Payload: $messageBody");
-
     print("✅ Sending with:");
     print("messageBody: $messageBody");
     print("userContact: whatsapp:${widget.request.contact}");
     print("sessionId: $sessionId");
-    print("pickupReqId: $widget.pickupRequestId");
+    print("documentId: ${widget.pickupRequestId}");
 
+    // Note the modified payload keys: documentId and collectionName
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -88,7 +92,8 @@ Reply:
         'messageBody': messageBody,
         'sessionId': sessionId,
         'userContact': 'whatsapp:${widget.request.contact}',
-        'pickupRequestId': widget.pickupRequestId,
+        'documentId': widget.pickupRequestId,          // Changed key here
+        'collectionName': 'pickup_requests',           // Specify the target collection
       }),
     );
 
@@ -147,8 +152,7 @@ Reply:
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Pickup Successful 🎉"),
-        content:
-        Text("You saved \$carbonSaved kg of CO₂!\n+50 reward points added."),
+        content: Text("You saved \$carbonSaved kg of CO₂!\n+50 reward points added."),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
@@ -172,8 +176,7 @@ Reply:
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("You Earned a Coupon! 🎁"),
-        content:
-        Text("Use code **\$coupon** on your next e-waste recycling order."),
+        content: Text("Use code **\$coupon** on your next e-waste recycling order."),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),

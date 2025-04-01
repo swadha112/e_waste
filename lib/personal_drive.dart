@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'home.dart';
+
 
 /// Simple model for an e-waste center returned by SerpAPI.
 class EwasteDrive {
@@ -211,7 +213,7 @@ class _PersonalDrivePageState extends State<PersonalDrivePage> {
   /// Send a WhatsApp message to the user (or center) to confirm pickup
   /// Here we show how to incorporate your “sendWhatsAppMessage” flow
   Future<void> _sendPickupMessage(EwasteDrive center) async {
-    // Build the personal request again from the form
+    // Rebuild the request object from the form
     final request = PersonalPickupRequest(
       name: _nameController.text,
       flatNo: _flatController.text,
@@ -225,19 +227,23 @@ class _PersonalDrivePageState extends State<PersonalDrivePage> {
       devicePrice: widget.objectPrice,
     );
 
-    // Store in Firestore with chosen center
-    // Optionally store 'centerTitle' and 'centerAddress' in the doc
+    // Store the personal drive request in 'Scheduled_pickup'
     final docRef = await FirebaseFirestore.instance
         .collection('Scheduled_pickup')
         .add({
       ...request.toMap(),
+      // Optionally, add center info if needed:
       'centerTitle': center.title,
       'centerAddress': center.address,
     });
 
-    final sessionId = docRef.id; // or any unique ID
+    // Use the document ID from Scheduled_pickup as our identifier
+    final scheduledPickupId = docRef.id;
+
+    // Use the scheduledPickupId as documentId and "Scheduled_pickup" as collectionName
+    final sessionId = scheduledPickupId; // or generate a new unique sessionId if desired
     final messageBody = '''
-📦 E-Waste Pickup Scheduled
+📦 Personal E-Waste Pickup Scheduled
 Name: ${request.name}
 Contact: ${request.contact}
 Location: ${request.flatNo}, ${request.streetAddress}, ${request.locality}, ${request.city}, ${request.state}
@@ -254,6 +260,8 @@ Reply:
         "https://us-central1-e-waste-453420.cloudfunctions.net/sendWhatsAppMessage";
     debugPrint("Sending WhatsApp message to $functionUrl");
     debugPrint("Payload: $messageBody");
+    debugPrint("sessionId: $sessionId");
+    debugPrint("ScheduledPickupId: $scheduledPickupId");
 
     try {
       final response = await http.post(
@@ -263,11 +271,12 @@ Reply:
           'messageBody': messageBody,
           'sessionId': sessionId,
           'userContact': 'whatsapp:${request.contact}',
+          'documentId': scheduledPickupId,      // Pass the document ID of the personal drive
+          'collectionName': "Scheduled_pickup", // Indicate the collection to update
         }),
       );
 
       if (response.statusCode == 201) {
-        // Start listening for the user's confirmation in Firestore
         _listenToConfirmation(sessionId, request);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pickup request sent via WhatsApp!')),
@@ -286,35 +295,53 @@ Reply:
     }
   }
 
-  /// Listen for Firestore doc updates (like user replying with "Yes" or "No")
-  void _listenToConfirmation(String sessionId, PersonalPickupRequest request) {
+
+  void _listenToConfirmation(String sessionId, PersonalPickupRequest request) async {
     final docRef = FirebaseFirestore.instance.collection('sessions').doc(sessionId);
+
     docRef.snapshots().listen((snapshot) {
       if (!snapshot.exists) return;
       final data = snapshot.data();
       if (data == null) return;
+
       if (data['replied'] == true) {
         if (data['confirmed'] == true) {
           debugPrint("✅ Pickup confirmed by user/center.");
-          _calculateCarbonAndReward(request);
+
+          // Update status in the Personal Pickup collection
+          FirebaseFirestore.instance.collection('Scheduled_pickup').doc(sessionId).update({
+            'status': 'successful', // Change the status to successful
+          }).then((_) {
+            // Optionally, do something after the status update, like showing a success message.
+            _calculateCarbonAndReward(request);
+          }).catchError((error) {
+            debugPrint("❌ Error updating status: $error");
+          });
         } else {
           debugPrint("❌ Pickup rejected.");
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Pickup not confirmed.")),
           );
+
+          // Update status in the Personal Pickup collection
+          FirebaseFirestore.instance.collection('Scheduled_pickup').doc(sessionId).update({
+            'status': 'unavailable', // Change the status to unavailable
+          }).catchError((error) {
+            debugPrint("❌ Error updating status: $error");
+          });
         }
       }
     });
   }
 
-  /// Example: calculate carbon saved or reward points
+
   void _calculateCarbonAndReward(PersonalPickupRequest request) {
-    // Suppose each device has a weight of 2 kg => 0.8 kg CO2 saved per kg, etc.
-    final double deviceWeight = 2.0; // Example
-    final double carbonSaved = deviceWeight * 0.8;
+    // For example: Each device weighs 2kg and saving 0.8 kg CO₂ per kg recycled.
+    final double deviceWeight = 2.0; // Example weight in kg
+    final double carbonSaved = deviceWeight * 0.8; // Calculate carbon saved
     final int updatedPoints = request.rewardPoints + 50;
 
-    // Store results in Firestore (optional)
+    // Store rewards data in Firestore so that the Dashboard can reflect these updates.
     FirebaseFirestore.instance.collection('rewards').add({
       'user': request.contact,
       'carbonSaved': carbonSaved,
@@ -322,28 +349,35 @@ Reply:
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // Check if user is eligible for coupon
+    // Optionally, if points exceed a threshold, show a coupon popup.
     if (updatedPoints >= 250) {
       _showCouponPopup(updatedPoints, request.contact);
     }
 
-    // Show a success message
+    // Show a success dialog with an OK button that navigates to the HomePage.
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Pickup Successful 🎉"),
         content: Text(
-          "You saved $carbonSaved kg of CO₂!\n+50 reward points added.",
+          "You saved ${carbonSaved.toStringAsFixed(2)} kg of CO₂!\n+50 reward points added.",
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              // Navigate to HomePage (assuming home.dart defines HomePage)
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => HomePage()),
+              );
+            },
             child: const Text("OK"),
           ),
         ],
       ),
     );
   }
+
 
   /// Show coupon popup if points threshold reached
   void _showCouponPopup(int points, String userContact) {

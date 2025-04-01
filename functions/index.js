@@ -19,9 +19,10 @@ exports.sendWhatsAppMessage = onRequest(
       return res.status(405).send("Method Not Allowed");
     }
 
-    const { messageBody, userContact, sessionId, pickupRequestId } = req.body;
+    // Note the additional fields: documentId and collectionName.
+    const { messageBody, userContact, sessionId, documentId, collectionName } = req.body;
 
-    if (!messageBody || !userContact || !sessionId || !pickupRequestId) {
+    if (!messageBody || !userContact || !sessionId || !documentId || !collectionName) {
       return res.status(400).send("Missing required fields");
     }
 
@@ -39,7 +40,8 @@ exports.sendWhatsAppMessage = onRequest(
         confirmed: false,
         replied: false,
         timestamp: new Date(),
-        pickupRequestId: pickupRequestId, // Link session to the pickup request
+        documentId: documentId,         // This could be pickupRequestId or scheduledPickupId
+        collectionName: collectionName, // e.g., "pickup_requests" or "Scheduled_pickup"
       });
 
       return res.status(201).send({ message: "Message sent", sid: message.sid });
@@ -52,24 +54,24 @@ exports.sendWhatsAppMessage = onRequest(
 
 exports.handleWhatsAppReply = onRequest({ timeoutSeconds: 30 }, async (req, res) => {
   let message = req.body.Body?.trim(); // e.g., "1" or "2"
-  let from = req.body.From;            // always "whatsapp:+919769338461"
+  let from = req.body.From;            // e.g., "whatsapp:+919769338461"
 
-  from = from.replace(/\s+/g, '');
+  from = from.replace(/\s+/g, ''); // Normalize phone number
 
   if (!message || !from) {
     return res.status(400).send("Missing required fields");
   }
 
-  // Determine confirmation based on the reply ("1" for confirmation, "2" for rejection)
+  // Determine confirmation based on the reply ("1" for confirmation)
   const isConfirmed = (message === "1");
 
   try {
-    // Query for the most recent pending session (replied == false) for this center
+    // Query for the most recent pending session for this phone
     const snapshot = await admin.firestore()
       .collection("sessions")
       .where("from", "==", from)
       .where("replied", "==", false)
-      .orderBy("timestamp", "desc") // Most recent pending session first
+      .orderBy("timestamp", "desc")
       .limit(1)
       .get();
 
@@ -81,20 +83,20 @@ exports.handleWhatsAppReply = onRequest({ timeoutSeconds: 30 }, async (req, res)
     const sessionRef = sessionDoc.ref;
     const sessionData = sessionDoc.data();
 
-    // Update the session to indicate that a reply has been received
+    // Update the session to indicate a reply has been received
     await sessionRef.update({
       confirmed: isConfirmed,
       replied: true,
     });
 
-    // Update the corresponding pickup_request using the stored pickupRequestId
-    if (sessionData.pickupRequestId) {
-      const requestRef = admin.firestore().collection("pickup_requests").doc(sessionData.pickupRequestId);
+    // Use the stored documentId and collectionName to update the proper Firestore document
+    if (sessionData.documentId && sessionData.collectionName) {
+      const requestRef = admin.firestore().collection(sessionData.collectionName).doc(sessionData.documentId);
       const newStatus = isConfirmed ? "successful" : "unavailable";
       await requestRef.update({ status: newStatus });
-      console.log(`✅ Pickup request ${sessionData.pickupRequestId} updated to ${newStatus}`);
+      console.log(`✅ Document ${sessionData.documentId} in ${sessionData.collectionName} updated to ${newStatus}`);
     } else {
-      console.warn("No pickupRequestId found in the session document");
+      console.warn("No documentId or collectionName found in session");
     }
 
     return res.status(200).send("Reply received and processed");
