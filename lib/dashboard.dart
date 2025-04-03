@@ -201,8 +201,8 @@ class DashboardPage extends StatelessWidget {
             // Use selectedCenterAddress and selectedCenterName from Firebase
             final streetAddress = data['streetAddress'] ?? 'N/A';
             final contact = data['contact'] ?? 'N/A';
-            final centerAddress = data['selectedCenterAddress'] ?? 'N/A';
-            final centerName = data['selectedCenterName'] ?? 'N/A';
+            final centerAddress = data['centerAddress'] ?? 'N/A';
+            final centerName = data['centerTitle'] ?? 'N/A';
             final deviceName = data['deviceName'] ?? 'N/A';
             final devicePrice =
             data['devicePrice'] != null ? data['devicePrice'].toString() : '0';
