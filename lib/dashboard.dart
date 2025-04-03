@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart';
+import 'track_chip_page.dart'; // Ensure this file exists and implements your tracking map page
 
 class DashboardPage extends StatelessWidget {
   final String userContact;
@@ -47,8 +48,6 @@ class DashboardPage extends StatelessWidget {
   }
 
   // ------------------ Section 1: Pickup Requests ------------------
-  // Extra details: buildingName, contact, pickupFor, rewardPoints, status
-  // Header remains: name & scheduled date
   Widget _buildPickupRequestsSection(String userContact) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -68,21 +67,17 @@ class DashboardPage extends StatelessWidget {
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
-
-            // Header: person's name & scheduled date
             final name = data['name'] ?? 'N/A';
             final dateString = data['timestamp'] != null
                 ? DateFormat('dd MMM yyyy')
                 .format((data['timestamp'] as Timestamp).toDate())
                 : 'N/A';
 
-            // Dropdown extra details
             final buildingName = data['buildingName'] ?? 'N/A';
             final contact = data['contact'] ?? 'N/A';
             final pickupFor = data['pickupFor'] ?? 'N/A';
-            final rewardPoints = data['rewardPoints'] != null
-                ? data['rewardPoints'].toString()
-                : '0';
+            final rewardPoints =
+            data['rewardPoints'] != null ? data['rewardPoints'].toString() : '0';
             final status = data['status'] ?? 'Pending';
 
             return Card(
@@ -92,7 +87,6 @@ class DashboardPage extends StatelessWidget {
                 backgroundColor: Colors.green,
                 iconColor: Colors.white,
                 collapsedIconColor: Colors.white,
-                // Header remains only the person's name and scheduled date
                 title: Text(
                   name,
                   style: TextStyle(
@@ -104,7 +98,6 @@ class DashboardPage extends StatelessWidget {
                   'Scheduled: $dateString',
                   style: TextStyle(color: Colors.white),
                 ),
-                // Dropdown shows extra details
                 children: [
                   Container(
                     color: Colors.white,
@@ -180,8 +173,6 @@ class DashboardPage extends StatelessWidget {
   }
 
   // ------------------ Section 2: Scheduled Pickup ------------------
-  // Extra details: streetAddress, contact, centreAddress, deviceName, devicePrice, status
-  // Header remains: name & scheduled date
   Widget _buildScheduledPickupSection(String userContact) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -201,22 +192,20 @@ class DashboardPage extends StatelessWidget {
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
-
-            // Header: person's name & scheduled date
             final name = data['name'] ?? 'N/A';
             final dateString = data['timestamp'] != null
                 ? DateFormat('dd MMM yyyy')
                 .format((data['timestamp'] as Timestamp).toDate())
                 : 'N/A';
 
-            // Dropdown extra details
+            // Use selectedCenterAddress and selectedCenterName from Firebase
             final streetAddress = data['streetAddress'] ?? 'N/A';
             final contact = data['contact'] ?? 'N/A';
-            final centreAddress = data['centerAddress'] ?? 'N/A';
+            final centerAddress = data['selectedCenterAddress'] ?? 'N/A';
+            final centerName = data['selectedCenterName'] ?? 'N/A';
             final deviceName = data['deviceName'] ?? 'N/A';
-            final devicePrice = data['devicePrice'] != null
-                ? data['devicePrice'].toString()
-                : '0';
+            final devicePrice =
+            data['devicePrice'] != null ? data['devicePrice'].toString() : '0';
             final status = data['status'] ?? 'Pending';
 
             return Card(
@@ -226,7 +215,6 @@ class DashboardPage extends StatelessWidget {
                 backgroundColor: Colors.green,
                 iconColor: Colors.white,
                 collapsedIconColor: Colors.white,
-                // Header remains as name and date
                 title: Text(
                   name,
                   style: TextStyle(
@@ -238,7 +226,6 @@ class DashboardPage extends StatelessWidget {
                   'Scheduled: $dateString',
                   style: TextStyle(color: Colors.white),
                 ),
-                // Dropdown shows extra details
                 children: [
                   Container(
                     color: Colors.white,
@@ -247,6 +234,7 @@ class DashboardPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Street Address
                         Row(
                           children: [
                             Icon(Icons.location_on, color: Colors.green),
@@ -258,6 +246,7 @@ class DashboardPage extends StatelessWidget {
                           ],
                         ),
                         SizedBox(height: 4),
+                        // Contact
                         Row(
                           children: [
                             Icon(Icons.phone, color: Colors.green),
@@ -269,23 +258,28 @@ class DashboardPage extends StatelessWidget {
                           ],
                         ),
                         SizedBox(height: 4),
+                        // Center Address (with wrapping)
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(Icons.home, color: Colors.green),
                             SizedBox(width: 8),
-                            Text(
-                              'Center Address: $centreAddress',
-                              style: TextStyle(color: Colors.black),
+                            Expanded(
+                              child: Text(
+                                'Center: $centerName\n$centerAddress',
+                                style: TextStyle(color: Colors.black),
+                              ),
                             ),
                           ],
                         ),
                         SizedBox(height: 4),
+                        // Device Details
                         Row(
                           children: [
                             Icon(Icons.devices, color: Colors.green),
                             SizedBox(width: 8),
                             Text(
-                              'Device Name: $deviceName',
+                              'Device: $deviceName',
                               style: TextStyle(color: Colors.black),
                             ),
                           ],
@@ -296,7 +290,7 @@ class DashboardPage extends StatelessWidget {
                             Icon(Icons.attach_money, color: Colors.green),
                             SizedBox(width: 8),
                             Text(
-                              'Device Price: ₹$devicePrice',
+                              'Price: ₹$devicePrice',
                               style: TextStyle(color: Colors.black),
                             ),
                           ],
@@ -312,6 +306,28 @@ class DashboardPage extends StatelessWidget {
                             ),
                           ],
                         ),
+                        // Show "Track Chip" button only if status is "successful"
+                        if (status.toLowerCase() == "successful")
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // Navigate to TrackChipPage passing the center address
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TrackChipPage(
+                                      centerAddress: centerAddress,
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                              ),
+                              child: Text("Track Chip"),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -324,9 +340,7 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  // ------------------ Section 3: Scheduled Drop Off ------------------
-  // Extra details: centreAddress, objectChosen, price, status
-  // Header remains: name & scheduled date
+  // ------------------ Section 3: Scheduled Drop Offs ------------------
   Widget _buildScheduledDropOffSection() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -345,20 +359,16 @@ class DashboardPage extends StatelessWidget {
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
-
-            // Header: person's name & scheduled date
             final name = data['name'] ?? 'Swadha';
             final dateString = data['timestamp'] != null
                 ? DateFormat('dd MMM yyyy')
                 .format((data['timestamp'] as Timestamp).toDate())
                 : 'N/A';
 
-            // Dropdown extra details
             final centreAddress = data['centerAddress'] ?? 'N/A';
             final objectChosen = data['objectChosen'] ?? 'N/A';
-            final price = data['price'] != null
-                ? data['price'].toString()
-                : '0';
+            final price =
+            data['price'] != null ? data['price'].toString() : '0';
             final status = data['status'] ?? 'Pending';
 
             return Card(
@@ -368,7 +378,6 @@ class DashboardPage extends StatelessWidget {
                 backgroundColor: Colors.green,
                 iconColor: Colors.white,
                 collapsedIconColor: Colors.white,
-                // Header: person’s name and scheduled date
                 title: Text(
                   name,
                   style: TextStyle(
@@ -380,7 +389,6 @@ class DashboardPage extends StatelessWidget {
                   'Scheduled: $dateString',
                   style: TextStyle(color: Colors.white),
                 ),
-                // Dropdown shows extra details
                 children: [
                   Container(
                     color: Colors.white,
@@ -390,12 +398,15 @@ class DashboardPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(Icons.home, color: Colors.green),
                             SizedBox(width: 8),
-                            Text(
-                              'Center Address: $centreAddress',
-                              style: TextStyle(color: Colors.black),
+                            Expanded(
+                              child: Text(
+                                'Center Address: $centreAddress',
+                                style: TextStyle(color: Colors.black),
+                              ),
                             ),
                           ],
                         ),

@@ -159,7 +159,7 @@ class HomePage extends StatelessWidget {
               children: [
                 Text(title,
                     style:
-                    TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 Icon(Icons.arrow_forward, color: Colors.green),
               ],
             ),
