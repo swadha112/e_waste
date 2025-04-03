@@ -28,6 +28,7 @@ dependencies:
   cloud_firestore: ^4.2.0
   web3dart: ^2.5.0
   intl: ^0.18.0
+  geocoding: ^2.0.4
 
 
 
