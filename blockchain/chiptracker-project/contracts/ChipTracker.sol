@@ -2,80 +2,93 @@
 pragma solidity ^0.8.28;
 
 contract ChipTracker {
-    // Structure to hold the details of each silicon chip.
     struct Chip {
-        string uid;             // Unique identifier for the chip (e.g., a UUID)
-        uint256 manufactureDate;// Timestamp when the chip was manufactured
-        uint256 disposalDate;   // Timestamp when the chip was disposed
-        uint256 transferDate;   // Timestamp when the chip was transferred for reuse
-        address manufacturer;   // Address of the original manufacturer
-        address disposer;       // Address that recorded the disposal event
-        address newManufacturer;// Address of the new manufacturer for reuse
-        string status;          // Current status of the chip: "Manufactured", "Disposed", "Transferred for Reuse"
+        string uid;               // Unique identifier for the chip
+        uint256 manufactureDate;  // When manufactured
+        uint256 disposalDate;     // When disposed
+        uint256 disintegrationDate; // When disintegrated
+        uint256 transferDate;     // When transferred for reuse
+        address manufacturer;     // Original manufacturer
+        address disposer;         // Address that recorded disposal
+        address newManufacturer;  // Address of new manufacturer
+        string status;            // "Manufactured", "Disposed", "Disintegrated", "Transferred for Reuse"
+        string disposalLocation;        // e.g. "E-waste Centre"
+        string disintegrationLocation;  // e.g. "Naidu Colony, Ghatkopar East, Mumbai, 400075"
+        string manufacturerLocation;    // e.g. Address of final manufacturer
     }
     
-    // Mapping to store chip details using the UID as the key.
     mapping(string => Chip) public chips;
     
-    // Events to log each stage of the chip lifecycle.
+    // Events for each stage
     event ChipRegistered(string indexed uid, address indexed manufacturer, uint256 manufactureDate);
-    event ChipDisposed(string indexed uid, address indexed disposer, uint256 disposalDate);
-    event ChipTransferred(string indexed uid, address indexed newManufacturer, uint256 transferDate);
+    event ChipDisposed(string indexed uid, address indexed disposer, uint256 disposalDate, string disposalLocation);
+    event ChipDisintegrated(string indexed uid, uint256 disintegrationDate, string disintegrationLocation);
+    event ChipTransferred(string indexed uid, address indexed newManufacturer, uint256 transferDate, string manufacturerLocation);
     
-    /**
-     * @dev Registers a new chip.
-     * @param _uid Unique identifier for the chip.
-     * @param _manufactureDate Timestamp when the chip was manufactured.
-     */
+    // Register a chip
     function registerChip(string memory _uid, uint256 _manufactureDate) public {
         require(bytes(_uid).length > 0, "UID must not be empty");
         require(chips[_uid].manufactureDate == 0, "Chip already registered");
-        
+
         chips[_uid] = Chip({
             uid: _uid,
             manufactureDate: _manufactureDate,
             disposalDate: 0,
+            disintegrationDate: 0,
             transferDate: 0,
             manufacturer: msg.sender,
             disposer: address(0),
             newManufacturer: address(0),
-            status: "Manufactured"
+            status: "Manufactured",
+            disposalLocation: "",
+            disintegrationLocation: "",
+            manufacturerLocation: ""
         });
-        
+
         emit ChipRegistered(_uid, msg.sender, _manufactureDate);
     }
     
-    /**
-     * @dev Records the disposal of a chip.
-     * @param _uid Unique identifier for the chip.
-     * @param _disposalDate Timestamp when the chip was disposed.
-     */
-    function recordDisposal(string memory _uid, uint256 _disposalDate) public {
+    // Record disposal (with disposal location)
+    function recordDisposal(string memory _uid, uint256 _disposalDate, string memory _disposalLocation) public {
         require(chips[_uid].manufactureDate != 0, "Chip not registered");
         require(chips[_uid].disposalDate == 0, "Chip already disposed");
-        
+
         chips[_uid].disposalDate = _disposalDate;
+        chips[_uid].disposalLocation = _disposalLocation;
         chips[_uid].disposer = msg.sender;
         chips[_uid].status = "Disposed";
-        
-        emit ChipDisposed(_uid, msg.sender, _disposalDate);
+
+        emit ChipDisposed(_uid, msg.sender, _disposalDate, _disposalLocation);
     }
     
-    /**
-     * @dev Records the transfer of a disposed chip for reuse by another manufacturer.
-     * @param _uid Unique identifier for the chip.
-     * @param _transferDate Timestamp when the chip was transferred.
-     * @param _newManufacturer Address of the new manufacturer receiving the chip.
-     */
-    function recordTransferForReuse(string memory _uid, uint256 _transferDate, address _newManufacturer) public {
+    // Record disintegration (with disintegration location)
+    function recordDisintegration(string memory _uid, uint256 _disintegrationDate, string memory _disintegrationLocation) public {
         require(chips[_uid].disposalDate != 0, "Chip not disposed yet");
+        require(chips[_uid].disintegrationDate == 0, "Chip already disintegrated");
+
+        chips[_uid].disintegrationDate = _disintegrationDate;
+        chips[_uid].disintegrationLocation = _disintegrationLocation;
+        chips[_uid].status = "Disintegrated";
+
+        emit ChipDisintegrated(_uid, _disintegrationDate, _disintegrationLocation);
+    }
+    
+    // Record final transfer to reuse (with manufacturer location)
+    function recordTransferForReuse(
+        string memory _uid,
+        uint256 _transferDate,
+        address _newManufacturer,
+        string memory _manufacturerLocation
+    ) public {
+        require(chips[_uid].disintegrationDate != 0, "Chip not disintegrated yet");
         require(chips[_uid].transferDate == 0, "Chip already transferred");
-        require(_newManufacturer != address(0), "Invalid new manufacturer address");
-        
+        require(_newManufacturer != address(0), "Invalid manufacturer address");
+
         chips[_uid].transferDate = _transferDate;
         chips[_uid].newManufacturer = _newManufacturer;
+        chips[_uid].manufacturerLocation = _manufacturerLocation;
         chips[_uid].status = "Transferred for Reuse";
-        
-        emit ChipTransferred(_uid, _newManufacturer, _transferDate);
+
+        emit ChipTransferred(_uid, _newManufacturer, _transferDate, _manufacturerLocation);
     }
 }
