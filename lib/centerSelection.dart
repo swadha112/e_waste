@@ -1,5 +1,5 @@
 // ============================
-// Flutter: CenterSelectionPage.dart (Modified for Unified Flow)
+// Flutter: CenterSelectionPage.dart (Updated to Save Center Info)
 // ============================
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,7 +11,8 @@ import 'findCentres.dart';
 
 class CenterSelectionPage extends StatefulWidget {
   final PickupRequest request;
-  final String pickupRequestId; // This is the document ID for collective drive
+  final String pickupRequestId;
+
   const CenterSelectionPage({
     super.key,
     required this.request,
@@ -59,9 +60,19 @@ class _CenterSelectionPageState extends State<CenterSelectionPage> {
   }
 
   Future<void> _sendPickupMessage(EwasteDrive center) async {
+    // 🔥 1. Save selected center name and address in Firestore
+    await FirebaseFirestore.instance
+        .collection('pickup_requests')
+        .doc(widget.pickupRequestId)
+        .update({
+      'selectedCenterName': center.title,
+      'selectedCenterAddress': center.address,
+    });
+
     final url = Uri.parse(
         "https://us-central1-e-waste-453420.cloudfunctions.net/sendWhatsAppMessage"
     );
+
     final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
     final messageBody = '''
 📦 E-Waste Pickup Scheduled
@@ -76,15 +87,10 @@ Reply:
 1️⃣ Yes, successful pickup
 2️⃣ No, not available
 ''';
+
     print("📤 Sending POST to $url");
     print("📦 Payload: $messageBody");
-    print("✅ Sending with:");
-    print("messageBody: $messageBody");
-    print("userContact: whatsapp:${widget.request.contact}");
-    print("sessionId: $sessionId");
-    print("documentId: ${widget.pickupRequestId}");
 
-    // Note the modified payload keys: documentId and collectionName
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -92,8 +98,8 @@ Reply:
         'messageBody': messageBody,
         'sessionId': sessionId,
         'userContact': 'whatsapp:${widget.request.contact}',
-        'documentId': widget.pickupRequestId,          // Changed key here
-        'collectionName': 'pickup_requests',           // Specify the target collection
+        'documentId': widget.pickupRequestId,
+        'collectionName': 'pickup_requests',
       }),
     );
 
@@ -112,18 +118,16 @@ Reply:
   void _listenToConfirmation(String sessionId) async {
     print("👂 Listening to session: $sessionId");
     final docRef = FirebaseFirestore.instance.collection('sessions').doc(sessionId);
+
     docRef.snapshots().listen((doc) {
-      print("📡 Firestore snapshot received: exists = ${doc.exists}");
       if (!doc.exists) return;
       final data = doc.data();
       if (data == null) return;
-      print("📄 Firestore data: $data");
+
       if (data['replied'] == true) {
         if (data['confirmed'] == true) {
-          print("✅ Pickup confirmed by center.");
           _calculateCarbonAndReward();
         } else {
-          print("❌ Pickup rejected by center.");
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Pickup not confirmed.")),
           );
@@ -152,11 +156,12 @@ Reply:
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Pickup Successful 🎉"),
-        content: Text("You saved \$carbonSaved kg of CO₂!\n+50 reward points added."),
+        content: Text("You saved $carbonSaved kg of CO₂!\n+50 reward points added."),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("OK")),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
         ],
       ),
     );
@@ -176,11 +181,12 @@ Reply:
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("You Earned a Coupon! 🎁"),
-        content: Text("Use code **\$coupon** on your next e-waste recycling order."),
+        content: Text("Use code **$coupon** on your next e-waste recycling order."),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Sweet!")),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Sweet!"),
+          ),
         ],
       ),
     );
