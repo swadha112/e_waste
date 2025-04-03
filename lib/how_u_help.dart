@@ -6,66 +6,6 @@ import 'package:e_waste/detection_page.dart';
 import 'package:e_waste/recycling_center.dart';
 import 'package:e_waste/edrives.dart';
 
-/// Model for Scheduled Disposal (from 'scheduled_disposals' collection)
-class ScheduledDisposal {
-  final String centerName;
-  final String centerAddress;
-  final String objectChosen;
-  final double price;
-  final DateTime timestamp;
-  final String status;
-
-  ScheduledDisposal({
-    required this.centerName,
-    required this.centerAddress,
-    required this.objectChosen,
-    required this.price,
-    required this.timestamp,
-    required this.status,
-  });
-
-  factory ScheduledDisposal.fromDocument(Map<String, dynamic> doc) {
-    return ScheduledDisposal(
-      centerName: doc['centerName'] ?? 'Unknown',
-      centerAddress: doc['centerAddress'] ?? 'No address',
-      objectChosen: doc['objectChosen'] ?? '',
-      price: (doc['price'] ?? 0).toDouble(),
-      timestamp: (doc['timestamp'] as Timestamp).toDate(),
-      status: doc['status'] ?? 'Pending',
-    );
-  }
-}
-
-/// Model for Pickup Request (E‑Drive) from 'pickup_requests' collection
-class PickupRequestDashboard {
-  final String name;
-  final String contact;
-  final DateTime scheduledDateTime;
-  final String pickupFor;
-  final String status;
-
-  PickupRequestDashboard({
-    required this.name,
-    required this.contact,
-    required this.scheduledDateTime,
-    required this.pickupFor,
-    required this.status,
-  });
-
-  factory PickupRequestDashboard.fromDocument(Map<String, dynamic> doc) {
-    // Assuming scheduledDateTime is saved as an ISO8601 string.
-    return PickupRequestDashboard(
-      name: doc['name'] ?? '',
-      contact: doc['contact'] ?? '',
-      scheduledDateTime: doc['scheduledDateTime'] != null
-          ? DateTime.parse(doc['scheduledDateTime'])
-          : DateTime.now(),
-      pickupFor: doc['pickupFor'] ?? '',
-      status: doc['status'] ?? 'Pending',
-    );
-  }
-}
-
 class HowCanYouHelpPage extends StatefulWidget {
   @override
   _HowCanYouHelpPageState createState() => _HowCanYouHelpPageState();
@@ -89,86 +29,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
     super.dispose();
   }
 
-  /// Stream builder for Scheduled Disposals
-  Widget _buildScheduledDisposalsSection() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('scheduled_disposals')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          return Center(child: CircularProgressIndicator());
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
-          return Text('No disposals scheduled yet.');
-        final docs = snapshot.data!.docs;
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: docs.length,
-          itemBuilder: (context, index) {
-            final data = docs[index].data() as Map<String, dynamic>;
-            final disposal = ScheduledDisposal.fromDocument(data);
-            final statusText = disposal.status == "Pending"
-                ? "Pickup Pending"
-                : "Successful";
-            return Card(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                title: Text(disposal.centerName),
-                subtitle: Text(
-                  '${disposal.centerAddress}\n📦 ${disposal.objectChosen} • ₹${disposal.price.toStringAsFixed(2)}\n🕒 ${disposal.timestamp.toLocal()}\n📌 Status: $statusText',
-                ),
-                isThreeLine: true,
-                leading: Icon(Icons.location_on, color: Colors.green),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  /// Stream builder for Pickup Requests (E-Drive)
-  Widget _buildPickupRequestsSection() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('pickup_requests')
-          .orderBy('timestamp', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          return Center(child: CircularProgressIndicator());
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
-          return Text('No E-Drive scheduled yet.');
-        final docs = snapshot.data!.docs;
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: docs.length,
-          itemBuilder: (context, index) {
-            final data = docs[index].data() as Map<String, dynamic>;
-            final pickup = PickupRequestDashboard.fromDocument(data);
-            final statusText = pickup.status == "Pending"
-                ? "Pickup Pending"
-                : "Successful";
-            return Card(
-              margin: EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                title: Text(pickup.name),
-                subtitle: Text(
-                  'Contact: ${pickup.contact}\nScheduled: ${pickup.scheduledDateTime.toLocal()}\nPickup For: ${pickup.pickupFor}\nStatus: $statusText',
-                ),
-                isThreeLine: true,
-                leading: Icon(Icons.drive_eta, color: Colors.blue),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
+  // Info card widget for header
   Widget _infoCard(String title, String value, String animationPath) {
     return Expanded(
       child: Container(
@@ -206,6 +67,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
     );
   }
 
+  // Contribution item widget
   Widget _buildContributionItem({
     required IconData icon,
     required String title,
@@ -282,7 +144,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Hello, Swadha!', // Replace with dynamic username if needed
+                    'Hello, Swadha!',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -307,36 +169,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               ),
             ),
             SizedBox(height: 20),
-
-            // Scheduled Disposals Section
-            Text(
-              'Your Scheduled Disposals',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.green[800],
-              ),
-            ),
-            SizedBox(height: 10),
-            _buildScheduledDisposalsSection(),
-
-            SizedBox(height: 20),
-
-            // E-Drive / Pickup Requests Section
-            Text(
-              'Your Scheduled E-Drive',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.green[800],
-              ),
-            ),
-            SizedBox(height: 10),
-            _buildPickupRequestsSection(),
-
-            SizedBox(height: 20),
-
-            // Ways to Contribute
+            // Ways to Contribute Section
             Text(
               'Ways You Can Contribute',
               style: TextStyle(
@@ -371,10 +204,8 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
               title: 'Spread Awareness',
               subtitle: 'Educate your community about responsible e-waste disposal methods.',
             ),
-
             SizedBox(height: 30),
-
-            // Disposal Options
+            // Disposal Options Section
             Text(
               'Looking for a way to dispose?',
               style: TextStyle(
@@ -465,9 +296,7 @@ class _HowCanYouHelpPageState extends State<HowCanYouHelpPage> {
                 ),
               ],
             ),
-
             SizedBox(height: 30),
-
             // YouTube Section
             Text(
               'Watch this video for tips on efficient e-waste management:',
