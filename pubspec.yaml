@@ -70,6 +70,8 @@ flutter:
     - assets/collective.json
     - assets/personal.json
     - assets/chip_tracker.abi
+    - assets/ecobyteLanding.png
+    - assets/dashboard.json
 
 
 flutter_icons:

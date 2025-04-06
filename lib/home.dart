@@ -1,45 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:e_waste/harmful_effects.dart';
-import 'package:e_waste/global_efforts.dart';
-import 'package:e_waste/how_u_help.dart';
-import 'dashboard.dart'; // Make sure dashboard.dart is in your project
+ import 'package:e_waste/harmful_effects.dart';
+ import 'package:e_waste/global_efforts.dart';
+ import 'package:e_waste/how_u_help.dart';
+ import 'dashboard.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
+  // Helper to build each section card with a shade of green
+  static Widget _buildSectionCard(
+      BuildContext context, {
+        required Color color,
+        required String lottieAsset,
+        required String title,
+        required String description,
+        required VoidCallback onPressed,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Lottie.asset(lottieAsset, height: 120),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: color,
+              ),
+              onPressed: onPressed,
+              icon: const Icon(Icons.arrow_forward),
+              label: const Text('Start'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Optional: add an AppBar if desired
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white70),
-          onPressed: () {
-            Navigator.pop(context); // OR: Navigator.pushReplacementNamed(context, '/');
-          },
-        ),
-        title: Text(
-          "EcoByte Recycle",
-          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
+      // No appBar as requested
       extendBodyBehindAppBar: true,
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Section with gradient overlay and adjusted title alignment
+            // Hero Image Section with gradient overlay
             Stack(
               children: [
                 Container(
                   height: 400,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage('assets/ewasteBg.jpg'),
+                      image: AssetImage('assets/EcoByte.png'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -62,7 +98,7 @@ class HomePage extends StatelessWidget {
                   bottom: 40,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: const [
                       Text(
                         'EcoByte',
                         style: TextStyle(
@@ -84,106 +120,60 @@ class HomePage extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 30),
-            // Awareness Sections with Arrow Icons for Navigation
-            _buildInfoSection(
-              context: context,
-              title: 'Harmful Effects of E-Waste',
-              content:
-              'E-waste releases toxic substances like lead, mercury, and cadmium into the environment, affecting human health, contaminating soil and water, and disrupting ecosystems.',
-              animationPath: 'assets/effects.json',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => HarmfulEffectsPage()),
-                );
-              },
-            ),
-            _buildInfoSection(
-              context: context,
-              title: 'Global Efforts on E-Waste Management',
-              content:
-              'Governments are enforcing stricter regulations, companies are adopting eco-friendly disposal, and e-waste recycling plants are growing globally.',
-              animationPath: 'assets/gov.json',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => GlobalEffortsPage()),
-                );
-              },
-            ),
-            _buildInfoSection(
-              context: context,
-              title: 'How Can You Help?',
-              content:
-              '1. Recycle old electronics responsibly.\n'
-                  '2. Donate used gadgets to those in need.\n'
-                  '3. Participate in e-waste collection drives.\n'
-                  '4. Buy refurbished electronics to reduce demand for new production.',
-              animationPath: 'assets/recycle.json',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => HowCanYouHelpPage()),
-                );
-              },
-            ),
-            SizedBox(height: 30),
-            // Dashboard button to check pickup_requests
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DashboardPage(
-                        userContact: '9769338461', // Replace with actual user contact if available
-                      ),
-                    ),
-                  );
-                },
-                child: Text("Go to Dashboard"),
-              ),
-            ),
-            SizedBox(height: 30),
-          ],
-        ),
-      ),
-    );
-  }
+            const SizedBox(height: 30),
 
-  Widget _buildInfoSection({
-    required BuildContext context,
-    required String title,
-    required String content,
-    required String animationPath,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title row with arrow icon indicating navigation
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title,
-                    style:
-                    TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Icon(Icons.arrow_forward, color: Colors.green),
-              ],
+            // Harmful Effects Section (Green shade)
+            _buildSectionCard(
+              context,
+              color: Colors.green.shade300,
+              lottieAsset: 'assets/effects.json',
+              title: 'Harmful Effects of E-Waste',
+              description:
+              'E-waste releases toxic substances like lead, mercury, and cadmium into the environment, contaminating soil and water.',
+              onPressed: () {
+                 Navigator.push(context, MaterialPageRoute(builder: (context) => HarmfulEffectsPage()));
+              },
             ),
-            SizedBox(height: 10),
-            Text(content, style: TextStyle(fontSize: 16)),
-            SizedBox(height: 20),
-            Center(child: Lottie.asset(animationPath, height: 200)),
-            SizedBox(height: 30),
+
+            // Global Efforts Section (Green shade)
+            _buildSectionCard(
+              context,
+              color: Colors.green.shade400,
+              lottieAsset: 'assets/gov.json',
+              title: 'Global Efforts on E-Waste Management',
+              description:
+              'Governments are enforcing stricter regulations and companies are adopting eco-friendly disposal methods.',
+              onPressed: () {
+                 Navigator.push(context, MaterialPageRoute(builder: (context) => GlobalEffortsPage()));
+              },
+            ),
+
+            // How Can You Help Section (Green shade)
+            _buildSectionCard(
+              context,
+              color: Colors.green.shade500,
+              lottieAsset: 'assets/recycle.json',
+              title: 'How Can You Help?',
+              description:
+              'Recycle old electronics, donate used gadgets, participate in e-waste drives, and buy refurbished items.',
+              onPressed: () {
+                 Navigator.push(context, MaterialPageRoute(builder: (context) => HowCanYouHelpPage()));
+              },
+            ),
+
+            // Dashboard Section (Green shade)
+            _buildSectionCard(
+              context,
+              color: Colors.green.shade400,
+              lottieAsset: 'assets/dashboard.json', // Replace with your dashboard animation
+              title: 'Dashboard',
+              description:
+              'View your pickup requests and manage your recycling progress.',
+              onPressed: () {
+                 Navigator.push(context, MaterialPageRoute(builder: (context) => DashboardPage(userContact: '9769338461')));
+              },
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),

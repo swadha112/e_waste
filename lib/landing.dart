@@ -48,6 +48,22 @@ class LandingPage extends StatelessWidget {
                   children: [
                     ElevatedButton(
                       onPressed: () {
+                        Navigator.pushNamed(context, '/home');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade800,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 55),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 5,
+                      ),
+                      child: const Text("🛠️ EcoByte Recycle", style: TextStyle(fontSize: 20)),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
                         Navigator.pushNamed(context, '/exchange');
                       },
                       style: ElevatedButton.styleFrom(
@@ -62,21 +78,7 @@ class LandingPage extends StatelessWidget {
                       child: const Text("📊 EcoByte Exchange", style: TextStyle(fontSize: 20)),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/home');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade800,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 55),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 5,
-                      ),
-                      child: const Text("🛠️ EcoByte Recycle", style: TextStyle(fontSize: 20)),
-                    ),
+
                   ],
                 ),
                 const SizedBox(height: 40),

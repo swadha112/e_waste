@@ -1,6 +1,3 @@
-// ============================
-// Flutter: CenterSelectionPage.dart (Updated to Save Center Info)
-// ============================
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +6,10 @@ import 'package:http/http.dart' as http;
 import 'edrives.dart';
 import 'findCentres.dart';
 
+import 'how_u_help.dart'; // Your final target page
+
 class CenterSelectionPage extends StatefulWidget {
-  final PickupRequest request;
+  final PickupRequest request;         // Your data model
   final String pickupRequestId;
 
   const CenterSelectionPage({
@@ -38,7 +37,8 @@ class _CenterSelectionPageState extends State<CenterSelectionPage> {
         'e-waste collection center near ${widget.request.locality}, ${widget.request.city}';
     final apiKey = dotenv.env['SERP_API_KEY'];
     final url = Uri.parse(
-        'https://serpapi.com/search.json?engine=google_maps&q=${Uri.encodeComponent(query)}&api_key=$apiKey');
+      'https://serpapi.com/search.json?engine=google_maps&q=${Uri.encodeComponent(query)}&api_key=$apiKey',
+    );
 
     try {
       final response = await http.get(url);
@@ -59,22 +59,26 @@ class _CenterSelectionPageState extends State<CenterSelectionPage> {
     }
   }
 
+  // Minimal update: as soon as user taps "Schedule Pickup", just:
+  //  1) Save center in Firestore
+  //  2) Send message if you want
+  //  3) Show success + redirect to HowCanYouHelpPage
   Future<void> _sendPickupMessage(EwasteDrive center) async {
-    // 🔥 1. Save selected center name and address in Firestore
-    await FirebaseFirestore.instance
-        .collection('pickup_requests')
-        .doc(widget.pickupRequestId)
-        .update({
-      'selectedCenterName': center.title,
-      'selectedCenterAddress': center.address,
-    });
+    try {
+      // 1) Save center in Firestore
+      await FirebaseFirestore.instance
+          .collection('pickup_requests')
+          .doc(widget.pickupRequestId)
+          .update({
+        'selectedCenterName': center.title,
+        'selectedCenterAddress': center.address,
+      });
 
-    final url = Uri.parse(
-        "https://us-central1-e-waste-453420.cloudfunctions.net/sendWhatsAppMessage"
-    );
-
-    final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
-    final messageBody = '''
+      // 2) (Optional) Send a WhatsApp message via your cloud function
+      final url = Uri.parse(
+        "https://us-central1-e-waste-453420.cloudfunctions.net/sendWhatsAppMessage",
+      );
+      final messageBody = '''
 📦 E-Waste Pickup Scheduled
 Name: ${widget.request.name}
 Contact: ${widget.request.contact}
@@ -82,114 +86,49 @@ Location: ${widget.request.flatNo}, ${widget.request.buildingName}, ${widget.req
 Date: ${widget.request.scheduledDateTime.toIso8601String()}
 Center: ${center.title}
 
-Are you available for pickup?
-Reply:
-1️⃣ Yes, successful pickup
-2️⃣ No, not available
+Thank you for scheduling your pickup!
 ''';
 
-    print("📤 Sending POST to $url");
-    print("📦 Payload: $messageBody");
+      final sessionId = DateTime.now().millisecondsSinceEpoch.toString();
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'messageBody': messageBody,
+          'sessionId': sessionId,
+          'userContact': 'whatsapp:${widget.request.contact}',
+          'documentId': widget.pickupRequestId,
+          'collectionName': 'pickup_requests',
+        }),
+      );
+      debugPrint("WhatsApp response: ${response.statusCode} => ${response.body}");
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'messageBody': messageBody,
-        'sessionId': sessionId,
-        'userContact': 'whatsapp:${widget.request.contact}',
-        'documentId': widget.pickupRequestId,
-        'collectionName': 'pickup_requests',
-      }),
-    );
+      // 3) Immediately show success and redirect
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Pickup Scheduled Successfully!"),
+          content: Text("Center: ${center.title}\n\nWe’ll be in touch soon."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => HowCanYouHelpPage()),
+                );
+              },
+              child: const Text("Continue"),
+            ),
+          ],
+        ),
+      );
 
-    print("📬 Response Code: ${response.statusCode}");
-    print("📬 Response Body: ${response.body}");
-
-    if (response.statusCode == 201) {
-      _listenToConfirmation(sessionId);
-    } else {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed: ${response.body}')),
+        SnackBar(content: Text('Failed: $e')),
       );
     }
-  }
-
-  void _listenToConfirmation(String sessionId) async {
-    print("👂 Listening to session: $sessionId");
-    final docRef = FirebaseFirestore.instance.collection('sessions').doc(sessionId);
-
-    docRef.snapshots().listen((doc) {
-      if (!doc.exists) return;
-      final data = doc.data();
-      if (data == null) return;
-
-      if (data['replied'] == true) {
-        if (data['confirmed'] == true) {
-          _calculateCarbonAndReward();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Pickup not confirmed.")),
-          );
-        }
-      }
-    });
-  }
-
-  void _calculateCarbonAndReward() {
-    final typeWeight = 5;
-    final carbonSaved = typeWeight * 0.8;
-    final updatedPoints = widget.request.rewardPoints + 50;
-
-    FirebaseFirestore.instance.collection('rewards').add({
-      'user': widget.request.contact,
-      'carbonSaved': carbonSaved,
-      'rewardPoints': updatedPoints,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-
-    if (updatedPoints >= 250) {
-      _showCouponPopup(updatedPoints);
-    }
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Pickup Successful 🎉"),
-        content: Text("You saved $carbonSaved kg of CO₂!\n+50 reward points added."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCouponPopup(int points) {
-    final coupon = "GREENFUTURE250";
-
-    FirebaseFirestore.instance.collection('coupons').add({
-      'user': widget.request.contact,
-      'points': points,
-      'code': coupon,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("You Earned a Coupon! 🎁"),
-        content: Text("Use code **$coupon** on your next e-waste recycling order."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Sweet!"),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
