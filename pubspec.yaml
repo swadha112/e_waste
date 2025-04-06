@@ -30,6 +30,7 @@ dependencies:
   intl: ^0.18.0
   geocoding: ^2.0.4
   shared_preferences: ^2.2.2
+  candlesticks: ^2.1.0
 
 
 

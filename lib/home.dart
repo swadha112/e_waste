@@ -12,6 +12,22 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       // Optional: add an AppBar if desired
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white70),
+          onPressed: () {
+            Navigator.pop(context); // OR: Navigator.pushReplacementNamed(context, '/');
+          },
+        ),
+        title: Text(
+          "EcoByte Recycle",
+          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      extendBodyBehindAppBar: true,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
