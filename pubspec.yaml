@@ -29,6 +29,7 @@ dependencies:
   web3dart: ^2.5.0
   intl: ^0.18.0
   geocoding: ^2.0.4
+  shared_preferences: ^2.2.2
   candlesticks: ^2.1.0
 
 
@@ -69,7 +70,6 @@ flutter:
     - assets/collective.json
     - assets/personal.json
     - assets/chip_tracker.abi
-    - assets/ecobyteLanding.png
 
 
 flutter_icons:
