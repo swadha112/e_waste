@@ -2,24 +2,9 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "string",
-        "name": "uid",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "disintegrationDate",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "disintegrationLocation",
-        "type": "string"
-      }
+      { "indexed": true, "internalType": "string", "name": "uid", "type": "string" },
+      { "indexed": false, "internalType": "uint256", "name": "disintegrationDate", "type": "uint256" },
+      { "indexed": false, "internalType": "string", "name": "disintegrationLocation", "type": "string" }
     ],
     "name": "ChipDisintegrated",
     "type": "event"
@@ -27,30 +12,10 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "string",
-        "name": "uid",
-        "type": "string"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "disposer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "disposalDate",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "disposalLocation",
-        "type": "string"
-      }
+      { "indexed": true, "internalType": "string", "name": "uid", "type": "string" },
+      { "indexed": true, "internalType": "address", "name": "disposer", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "disposalDate", "type": "uint256" },
+      { "indexed": false, "internalType": "string", "name": "disposalLocation", "type": "string" }
     ],
     "name": "ChipDisposed",
     "type": "event"
@@ -58,24 +23,9 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "string",
-        "name": "uid",
-        "type": "string"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "manufacturer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "manufactureDate",
-        "type": "uint256"
-      }
+      { "indexed": true, "internalType": "string", "name": "uid", "type": "string" },
+      { "indexed": true, "internalType": "address", "name": "manufacturer", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "manufactureDate", "type": "uint256" }
     ],
     "name": "ChipRegistered",
     "type": "event"
@@ -83,125 +33,39 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "string",
-        "name": "uid",
-        "type": "string"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newManufacturer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "transferDate",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "manufacturerLocation",
-        "type": "string"
-      }
+      { "indexed": true, "internalType": "string", "name": "uid", "type": "string" },
+      { "indexed": true, "internalType": "address", "name": "newManufacturer", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "transferDate", "type": "uint256" },
+      { "indexed": false, "internalType": "string", "name": "manufacturerLocation", "type": "string" }
     ],
     "name": "ChipTransferred",
     "type": "event"
   },
   {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
+    "inputs": [{ "internalType": "string", "name": "", "type": "string" }],
     "name": "chips",
     "outputs": [
-      {
-        "internalType": "string",
-        "name": "uid",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "manufactureDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "disposalDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "disintegrationDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "transferDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "manufacturer",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "disposer",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "newManufacturer",
-        "type": "address"
-      },
-      {
-        "internalType": "string",
-        "name": "status",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "disposalLocation",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "disintegrationLocation",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "manufacturerLocation",
-        "type": "string"
-      }
+      { "internalType": "string", "name": "uid", "type": "string" },
+      { "internalType": "uint256", "name": "manufactureDate", "type": "uint256" },
+      { "internalType": "uint256", "name": "disposalDate", "type": "uint256" },
+      { "internalType": "uint256", "name": "disintegrationDate", "type": "uint256" },
+      { "internalType": "uint256", "name": "transferDate", "type": "uint256" },
+      { "internalType": "address", "name": "manufacturer", "type": "address" },
+      { "internalType": "address", "name": "disposer", "type": "address" },
+      { "internalType": "address", "name": "newManufacturer", "type": "address" },
+      { "internalType": "string", "name": "status", "type": "string" },
+      { "internalType": "string", "name": "disposalLocation", "type": "string" },
+      { "internalType": "string", "name": "disintegrationLocation", "type": "string" },
+      { "internalType": "string", "name": "manufacturerLocation", "type": "string" }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      {
-        "internalType": "string",
-        "name": "_uid",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_disintegrationDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_disintegrationLocation",
-        "type": "string"
-      }
+      { "internalType": "string", "name": "_uid", "type": "string" },
+      { "internalType": "uint256", "name": "_disintegrationDate", "type": "uint256" },
+      { "internalType": "string", "name": "_disintegrationLocation", "type": "string" }
     ],
     "name": "recordDisintegration",
     "outputs": [],
@@ -210,21 +74,9 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "string",
-        "name": "_uid",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_disposalDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_disposalLocation",
-        "type": "string"
-      }
+      { "internalType": "string", "name": "_uid", "type": "string" },
+      { "internalType": "uint256", "name": "_disposalDate", "type": "uint256" },
+      { "internalType": "string", "name": "_disposalLocation", "type": "string" }
     ],
     "name": "recordDisposal",
     "outputs": [],
@@ -233,26 +85,10 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "string",
-        "name": "_uid",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_transferDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_newManufacturer",
-        "type": "address"
-      },
-      {
-        "internalType": "string",
-        "name": "_manufacturerLocation",
-        "type": "string"
-      }
+      { "internalType": "string", "name": "_uid", "type": "string" },
+      { "internalType": "uint256", "name": "_transferDate", "type": "uint256" },
+      { "internalType": "address", "name": "_newManufacturer", "type": "address" },
+      { "internalType": "string", "name": "_manufacturerLocation", "type": "string" }
     ],
     "name": "recordTransferForReuse",
     "outputs": [],
@@ -261,16 +97,8 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "string",
-        "name": "_uid",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_manufactureDate",
-        "type": "uint256"
-      }
+      { "internalType": "string", "name": "_uid", "type": "string" },
+      { "internalType": "uint256", "name": "_manufactureDate", "type": "uint256" }
     ],
     "name": "registerChip",
     "outputs": [],
