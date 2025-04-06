@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-import 'home.dart';
+import 'package:e_waste/home.dart';
 import 'EcoByteExchange.dart';
 import 'landing.dart'; // Add this import
 
