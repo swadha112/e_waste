@@ -9,6 +9,17 @@ class DashboardPage extends StatelessWidget {
 
   const DashboardPage({Key? key, required this.userContact}) : super(key: key);
 
+  // Hardcoded weights (kg) for common devices; default for others
+  static const Map<String, double> _hardcodedWeights = {
+    'smartphone': 0.2,
+    'ewashing machine': 50.0,
+    'laptop': 2.5,
+    'headphones': 0.3,
+  };
+  static const double _defaultWeight = 1.0;
+  // Emission factor in kg CO₂ per kg of recycled e‑waste:
+  static const double _emissionFactor = 3.0;
+
   // Info card widget for header (white background with Lottie icon)
   Widget _infoCard(String title, String value, String lottieAsset) {
     return Expanded(
@@ -16,7 +27,7 @@ class DashboardPage extends StatelessWidget {
         margin: EdgeInsets.symmetric(horizontal: 4),
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white, // white info card background
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -72,13 +83,11 @@ class DashboardPage extends StatelessWidget {
                 ? DateFormat('dd MMM yyyy')
                 .format((data['timestamp'] as Timestamp).toDate())
                 : 'N/A';
-
             final buildingName = data['buildingName'] ?? 'N/A';
             final contact = data['contact'] ?? 'N/A';
             final pickupFor = data['pickupFor'] ?? 'N/A';
-            final rewardPoints =
-            data['rewardPoints'] != null ? data['rewardPoints'].toString() : '0';
-            final status = data['status'] ?? 'Pending';
+            final rewardPoints = data['rewardPoints']?.toString() ?? '0';
+            final status = (data['status'] ?? 'Pending').toString().toLowerCase();
 
             return Card(
               margin: EdgeInsets.symmetric(vertical: 8),
@@ -106,60 +115,60 @@ class DashboardPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.business, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Building: $buildingName',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.business, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Building: $buildingName',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.phone, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Contact: $contact',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.phone, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Contact: $contact',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.assignment, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Pickup For: $pickupFor',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.assignment, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Pickup For: $pickupFor',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.stars, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Reward Points: $rewardPoints',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.stars, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Reward Points: $rewardPoints',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Status: $status',
-                              style: TextStyle(color: Colors.black),
+                        Row(children: [
+                          Icon(Icons.info_outline, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Status: ${status.capitalize()}',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
+                        if (status == 'successful')
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TrackChipPage(
+                                      centerAddress: buildingName,
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                              ),
+                              child: Text("Track Chip"),
                             ),
-                          ],
-                        ),
+                          ),
                       ],
                     ),
                   ),
@@ -197,16 +206,13 @@ class DashboardPage extends StatelessWidget {
                 ? DateFormat('dd MMM yyyy')
                 .format((data['timestamp'] as Timestamp).toDate())
                 : 'N/A';
-
-            // Use selectedCenterAddress and selectedCenterName from Firebase
             final streetAddress = data['streetAddress'] ?? 'N/A';
             final contact = data['contact'] ?? 'N/A';
             final centerAddress = data['centerAddress'] ?? 'N/A';
             final centerName = data['centerTitle'] ?? 'N/A';
-            final deviceName = data['deviceName'] ?? 'N/A';
-            final devicePrice =
-            data['devicePrice'] != null ? data['devicePrice'].toString() : '0';
-            final status = data['status'] ?? 'Pending';
+            final deviceName = (data['deviceName'] ?? 'N/A').toString();
+            final devicePrice = data['devicePrice']?.toString() ?? '0';
+            final status = (data['status'] ?? 'Pending').toString().toLowerCase();
 
             return Card(
               margin: EdgeInsets.symmetric(vertical: 8),
@@ -234,85 +240,54 @@ class DashboardPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Street Address
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Street Address: $streetAddress',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.location_on, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Street Address: $streetAddress',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        // Contact
-                        Row(
-                          children: [
-                            Icon(Icons.phone, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Contact: $contact',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.phone, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Contact: $contact',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        // Center Address (with wrapping)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.home, color: Colors.green),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Center: $centerName\n$centerAddress',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ],
-                        ),
+                        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Icon(Icons.home, color: Colors.green),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text('Center: $centerName\n$centerAddress',
+                                style: TextStyle(color: Colors.black)),
+                          ),
+                        ]),
                         SizedBox(height: 4),
-                        // Device Details
-                        Row(
-                          children: [
-                            Icon(Icons.devices, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Device: $deviceName',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.devices, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Device: $deviceName',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.attach_money, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Price: ₹$devicePrice',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                        Row(children: [
+                          Icon(Icons.attach_money, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Price: ₹$devicePrice',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
                         SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Status: $status',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
-                        // Show "Track Chip" button only if status is "successful"
-                        if (status.toLowerCase() == "successful")
+                        Row(children: [
+                          Icon(Icons.info_outline, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Status: ${status.capitalize()}',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
+                        if (status == 'successful')
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: ElevatedButton(
                               onPressed: () {
-                                // Navigate to TrackChipPage passing the center address
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -364,12 +339,10 @@ class DashboardPage extends StatelessWidget {
                 ? DateFormat('dd MMM yyyy')
                 .format((data['timestamp'] as Timestamp).toDate())
                 : 'N/A';
-
             final centreAddress = data['centerAddress'] ?? 'N/A';
-            final objectChosen = data['objectChosen'] ?? 'N/A';
-            final price =
-            data['price'] != null ? data['price'].toString() : '0';
-            final status = data['status'] ?? 'Pending';
+            final objectChosen = (data['objectChosen'] ?? 'N/A').toString();
+            final price = data['price']?.toString() ?? '0';
+            final status = (data['status'] ?? 'Pending').toString().toLowerCase();
 
             return Card(
               margin: EdgeInsets.symmetric(vertical: 8),
@@ -397,52 +370,55 @@ class DashboardPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.home, color: Colors.green),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Center Address: $centreAddress',
-                                style: TextStyle(color: Colors.black),
+                        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Icon(Icons.home, color: Colors.green),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text('Center Address: $centreAddress',
+                                style: TextStyle(color: Colors.black)),
+                          ),
+                        ]),
+                        SizedBox(height: 4),
+                        Row(children: [
+                          Icon(Icons.devices, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Object: $objectChosen',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
+                        SizedBox(height: 4),
+                        Row(children: [
+                          Icon(Icons.attach_money, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Price: ₹$price',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
+                        SizedBox(height: 4),
+                        Row(children: [
+                          Icon(Icons.info_outline, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Status: ${status.capitalize()}',
+                              style: TextStyle(color: Colors.black)),
+                        ]),
+                        if (status == 'successful')
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TrackChipPage(
+                                      centerAddress: centreAddress,
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
                               ),
+                              child: Text("Track Chip"),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.devices, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Object: $objectChosen',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.attach_money, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Price: ₹$price',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Status: $status',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
+                          ),
                       ],
                     ),
                   ),
@@ -468,7 +444,7 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dashboard header with greeting, location, and info cards
+            // Dashboard header with combined dynamic points, carbon footprint, and recycled count
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -494,14 +470,161 @@ class DashboardPage extends StatelessWidget {
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      _infoCard('Points', '1250', 'assets/points.json'),
-                      _infoCard('Carbon Footprint', '2.5kg', 'assets/carbon.json'),
-                      _infoCard('Times Recycled', '10', 'assets/recycled.json'),
+                      // ─── Points ───
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('Scheduled_pickup')
+                            .where('contact', isEqualTo: userContact)
+                            .where('status', isEqualTo: 'successful')
+                            .snapshots(),
+                        builder: (ctx, pickupSnap) {
+                          return StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('scheduled_dropoff')
+                                .where('status', isEqualTo: 'successful')
+                                .snapshots(),
+                            builder: (ctx2, dropoffSnap) {
+                              return StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('pickup_requests')
+                                    .where('contact', isEqualTo: userContact)
+                                    .where('status', isEqualTo: 'successful')
+                                    .snapshots(),
+                                builder: (ctx3, reqSnap) {
+                                  double totalPoints = 0;
+                                  if (pickupSnap.hasData) {
+                                    for (var doc in pickupSnap.data!.docs) {
+                                      final price = (doc['devicePrice'] as num).toDouble();
+                                      totalPoints += price;
+                                    }
+                                  }
+                                  if (dropoffSnap.hasData) {
+                                    for (var doc in dropoffSnap.data!.docs) {
+                                      final price = (doc['price'] as num).toDouble();
+                                      totalPoints += price;
+                                    }
+                                  }
+                                  if (reqSnap.hasData) {
+                                    for (var doc in reqSnap.data!.docs) {
+                                      final pts = (doc['rewardPoints'] as num).toDouble();
+                                      totalPoints += pts;
+                                    }
+                                  }
+                                  return _infoCard(
+                                    'Points',
+                                    totalPoints.toStringAsFixed(0),
+                                    'assets/points.json',
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+
+                      // ─── Carbon Footprint ───
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('Scheduled_pickup')
+                            .where('contact', isEqualTo: userContact)
+                            .where('status', isEqualTo: 'successful')
+                            .snapshots(),
+                        builder: (ctx1, pickSnap) {
+                          return StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('scheduled_dropoff')
+                                .where('status', isEqualTo: 'successful')
+                                .snapshots(),
+                            builder: (ctx2, dropSnap) {
+                              return StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('pickup_requests')
+                                    .where('contact', isEqualTo: userContact)
+                                    .where('status', isEqualTo: 'successful')
+                                    .snapshots(),
+                                builder: (ctx3, reqSnap) {
+                                  double totalWeight = 0;
+
+                                  if (pickSnap.hasData) {
+                                    for (var doc in pickSnap.data!.docs) {
+                                      final data = doc.data() as Map<String, dynamic>;
+                                      final name = (data['deviceName'] ?? '').toString().toLowerCase();
+                                      totalWeight +=
+                                          _hardcodedWeights[name] ?? _defaultWeight;
+                                    }
+                                  }
+                                  if (dropSnap.hasData) {
+                                    for (var doc in dropSnap.data!.docs) {
+                                      final data = doc.data() as Map<String, dynamic>;
+                                      final obj = (data['objectChosen'] ?? '').toString().toLowerCase();
+                                      totalWeight +=
+                                          _hardcodedWeights[obj] ?? _defaultWeight;
+                                    }
+                                  }
+                                  if (reqSnap.hasData) {
+                                    for (var doc in reqSnap.data!.docs) {
+                                      final data = doc.data() as Map<String, dynamic>;
+                                      final obj = (data['pickupFor'] ?? '').toString().toLowerCase();
+                                      totalWeight +=
+                                          _hardcodedWeights[obj] ?? _defaultWeight;
+                                    }
+                                  }
+
+                                  final co2Saved = totalWeight * _emissionFactor;
+                                  return _infoCard(
+                                    'Carbon Footprint',
+                                    '${co2Saved.toStringAsFixed(1)} kg CO₂',
+                                    'assets/carbon.json',
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+
+                      // ─── Times Recycled ───
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('Scheduled_pickup')
+                            .where('contact', isEqualTo: userContact)
+                            .where('status', isEqualTo: 'successful')
+                            .snapshots(),
+                        builder: (ctx, pickupSnap) {
+                          return StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('scheduled_dropoff')
+                                .where('status', isEqualTo: 'successful')
+                                .snapshots(),
+                            builder: (ctx2, dropoffSnap) {
+                              return StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('pickup_requests')
+                                    .where('contact', isEqualTo: userContact)
+                                    .where('status', isEqualTo: 'successful')
+                                    .snapshots(),
+                                builder: (ctx3, reqSnap) {
+                                  int count = 0;
+                                  if (pickupSnap.hasData) count += pickupSnap.data!.docs.length;
+                                  if (dropoffSnap.hasData) count += dropoffSnap.data!.docs.length;
+                                  if (reqSnap.hasData) count += reqSnap.data!.docs.length;
+                                  return _infoCard(
+                                    'Times Recycled',
+                                    count.toString(),
+                                    'assets/recycled.json',
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
+
             SizedBox(height: 20),
             // Section 1: Pickup Requests
             Text(
@@ -512,6 +635,7 @@ class DashboardPage extends StatelessWidget {
                   color: Colors.green[800]),
             ),
             _buildPickupRequestsSection(userContact),
+
             SizedBox(height: 20),
             // Section 2: Scheduled Pickup
             Text(
@@ -522,6 +646,7 @@ class DashboardPage extends StatelessWidget {
                   color: Colors.green[800]),
             ),
             _buildScheduledPickupSection(userContact),
+
             SizedBox(height: 20),
             // Section 3: Scheduled Drop Offs
             Text(
@@ -537,4 +662,10 @@ class DashboardPage extends StatelessWidget {
       ),
     );
   }
+}
+
+extension StringExtension on String {
+  String capitalize() => length > 0
+      ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}'
+      : '';
 }
