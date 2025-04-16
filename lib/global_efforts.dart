@@ -280,7 +280,7 @@ class WhatGivtsDoSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Text(
-            'What Givts Do',
+            'What Governments Do',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
