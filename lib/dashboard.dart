@@ -63,15 +63,22 @@ class DashboardPage extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('pickup_requests')
-          .where('contact', isEqualTo: userContact)
-          .orderBy('timestamp', descending: true)
+          //.where('contact', isEqualTo: userContact)
+      // order by ISO date string field instead of Firestore timestamp
+          .orderBy('scheduledDateTime', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting)
           return Center(child: CircularProgressIndicator());
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
+        if (snapshot.hasError)
+          return Text('Error loading pickup requests: ${snapshot.error}');
+        final docs = snapshot.data?.docs ?? [];
+        if (docs.isEmpty) {
+          print('No pickup requests found for contact: $userContact');
           return Text('No Pickup Requests scheduled.');
-        final docs = snapshot.data!.docs;
+        }
+
+
         return ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
@@ -79,15 +86,15 @@ class DashboardPage extends StatelessWidget {
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
             final name = data['name'] ?? 'N/A';
-            final dateString = data['timestamp'] != null
-                ? DateFormat('dd MMM yyyy')
-                .format((data['timestamp'] as Timestamp).toDate())
+            final raw = data['scheduledDateTime'] as String?;
+            final dateString = raw != null
+                ? DateFormat('dd MMM yyyy, h:mm a')
+                .format(DateTime.parse(raw))
                 : 'N/A';
             final buildingName = data['buildingName'] ?? 'N/A';
-            final contact = data['contact'] ?? 'N/A';
             final pickupFor = data['pickupFor'] ?? 'N/A';
             final rewardPoints = data['rewardPoints']?.toString() ?? '0';
-            final status = (data['status'] ?? 'Pending').toString().toLowerCase();
+            final status = (data['status'] ?? 'pending').toString().toLowerCase();
 
             return Card(
               margin: EdgeInsets.symmetric(vertical: 8),
@@ -115,40 +122,10 @@ class DashboardPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(children: [
-                          Icon(Icons.business, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text('Building: $buildingName',
-                              style: TextStyle(color: Colors.black)),
-                        ]),
-                        SizedBox(height: 4),
-                        Row(children: [
-                          Icon(Icons.phone, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text('Contact: $contact',
-                              style: TextStyle(color: Colors.black)),
-                        ]),
-                        SizedBox(height: 4),
-                        Row(children: [
-                          Icon(Icons.assignment, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text('Pickup For: $pickupFor',
-                              style: TextStyle(color: Colors.black)),
-                        ]),
-                        SizedBox(height: 4),
-                        Row(children: [
-                          Icon(Icons.stars, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text('Reward Points: $rewardPoints',
-                              style: TextStyle(color: Colors.black)),
-                        ]),
-                        SizedBox(height: 4),
-                        Row(children: [
-                          Icon(Icons.info_outline, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text('Status: ${status.capitalize()}',
-                              style: TextStyle(color: Colors.black)),
-                        ]),
+                        _detailRow(Icons.business, 'Building', buildingName),
+                        _detailRow(Icons.assignment, 'Pickup For', pickupFor),
+                        _detailRow(Icons.stars, 'Reward Points', rewardPoints),
+                        _detailRow(Icons.info_outline, 'Status', status.capitalize()),
                         if (status == 'successful')
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
@@ -166,7 +143,7 @@ class DashboardPage extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                               ),
-                              child: Text("Track Chip"),
+                              child: Text('Track Chip'),
                             ),
                           ),
                       ],
@@ -178,6 +155,18 @@ class DashboardPage extends StatelessWidget {
           },
         );
       },
+    );
+  }
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.green),
+          SizedBox(width: 8),
+          Text('$label: $value', style: TextStyle(color: Colors.black)),
+        ],
+      ),
     );
   }
 
