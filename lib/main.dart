@@ -5,7 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'package:e_waste/home.dart';
-import 'EcoByteExchange.dart';
+//import 'EcoByteExchange.dart';
+import 'package:e_waste/screens/ecobyte_exchange.dart';
 import 'landing.dart'; // Add this import
 
 Future main() async {

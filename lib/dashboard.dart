@@ -63,7 +63,7 @@ class DashboardPage extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('pickup_requests')
-          //.where('contact', isEqualTo: userContact)
+         // .where('contact', isEqualTo: userContact)
       // order by ISO date string field instead of Firestore timestamp
           .orderBy('scheduledDateTime', descending: true)
           .snapshots(),
