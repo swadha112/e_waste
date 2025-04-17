@@ -105,3 +105,4 @@ exports.handleWhatsAppReply = onRequest({ timeoutSeconds: 30 }, async (req, res)
     return res.status(500).send("Internal Server Error");
   }
 });
+

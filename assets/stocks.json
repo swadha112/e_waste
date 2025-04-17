@@ -1,0 +1,252 @@
+[
+  {
+    "name": "Apple iPhone 13",
+    "symbol": "IP13",
+    "category": "Phone",
+    "currentPrice": 79000,
+    "history": [74000, 74500, 75000, 75500, 76000, 76500, 77000, 77500, 78000, 79000],
+    "supply": 150,
+    "demand": 180,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Samsung Galaxy S21",
+    "symbol": "SGS21",
+    "category": "Phone",
+    "currentPrice": 65000,
+    "history": [60000, 60500, 61000, 61500, 62000, 62500, 63000, 63500, 64000, 65000],
+    "supply": 160,
+    "demand": 140,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "OnePlus 9",
+    "symbol": "OP9",
+    "category": "Phone",
+    "currentPrice": 48000,
+    "history": [45000, 45500, 46000, 46500, 47000, 47500, 47700, 47800, 47900, 48000],
+    "supply": 200,
+    "demand": 170,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Xiaomi Mi 11",
+    "symbol": "XM11",
+    "category": "Phone",
+    "currentPrice": 40000,
+    "history": [38000, 38200, 38400, 38600, 38800, 39000, 39200, 39400, 39600, 40000],
+    "supply": 180,
+    "demand": 190,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Google Pixel 6",
+    "symbol": "GP6",
+    "category": "Phone",
+    "currentPrice": 70000,
+    "history": [66000, 66250, 66500, 66750, 67000, 67250, 67500, 67750, 68000, 70000],
+    "supply": 140,
+    "demand": 150,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Apple iPad Air",
+    "symbol": "IPADA",
+    "category": "Tablet",
+    "currentPrice": 55000,
+    "history": [50000, 50250, 50500, 50750, 51000, 51250, 51500, 51750, 52000, 55000],
+    "supply": 100,
+    "demand": 110,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Samsung Galaxy Tab S6",
+    "symbol": "SGTS6",
+    "category": "Tablet",
+    "currentPrice": 58000,
+    "history": [53000, 53500, 54000, 54500, 55000, 55500, 56000, 56500, 57000, 58000],
+    "supply": 120,
+    "demand": 130,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Lenovo Tab P11",
+    "symbol": "LTP11",
+    "category": "Tablet",
+    "currentPrice": 28000,
+    "history": [25000, 25250, 25500, 25750, 26000, 26250, 26500, 26750, 27000, 28000],
+    "supply": 140,
+    "demand": 150,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "LG 4K OLED TV",
+    "symbol": "LGTV4K",
+    "category": "TV",
+    "currentPrice": 120000,
+    "history": [110000, 111000, 112000, 113000, 114000, 115000, 116000, 117000, 118000, 120000],
+    "supply": 50,
+    "demand": 70,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Sony Bravia 55",
+    "symbol": "SONY55",
+    "category": "TV",
+    "currentPrice": 90000,
+    "history": [85000, 85500, 86000, 86500, 87000, 87500, 88000, 88500, 89000, 90000],
+    "supply": 60,
+    "demand": 80,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Samsung QLED TV",
+    "symbol": "SQTV",
+    "category": "TV",
+    "currentPrice": 110000,
+    "history": [105000, 105500, 106000, 106500, 107000, 107500, 108000, 108500, 109000, 110000],
+    "supply": 55,
+    "demand": 75,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Xiaomi Mi TV",
+    "symbol": "XMTV",
+    "category": "TV",
+    "currentPrice": 42000,
+    "history": [40000, 40200, 40400, 40600, 40800, 41000, 41200, 41400, 41600, 42000],
+    "supply": 80,
+    "demand": 90,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Bose QuietComfort Earbuds",
+    "symbol": "BOSEQC",
+    "category": "Earphone",
+    "currentPrice": 20000,
+    "history": [18000, 18200, 18400, 18600, 18800, 19000, 19200, 19400, 19600, 20000],
+    "supply": 100,
+    "demand": 130,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Sony WF-1000XM4",
+    "symbol": "SONYWX4",
+    "category": "Earphone",
+    "currentPrice": 18000,
+    "history": [16500, 16650, 16800, 16950, 17100, 17250, 17400, 17550, 17700, 18000],
+    "supply": 110,
+    "demand": 120,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Sennheiser Momentum True Wireless",
+    "symbol": "SENMTW",
+    "category": "Earphone",
+    "currentPrice": 22000,
+    "history": [20000, 20200, 20400, 20600, 20800, 21000, 21200, 21400, 21600, 22000],
+    "supply": 90,
+    "demand": 100,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "JBL Tune 750BTNC",
+    "symbol": "JBL750",
+    "category": "Earphone",
+    "currentPrice": 7500,
+    "history": [7000, 7050, 7100, 7150, 7200, 7250, 7300, 7350, 7400, 7500],
+    "supply": 130,
+    "demand": 140,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Whirlpool Microwave Oven",
+    "symbol": "WHMIC",
+    "category": "Oven",
+    "currentPrice": 18000,
+    "history": [16000, 16100, 16200, 16300, 16400, 16500, 16600, 16700, 16800, 18000],
+    "supply": 70,
+    "demand": 85,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Samsung Convection Oven",
+    "symbol": "SAMCON",
+    "category": "Oven",
+    "currentPrice": 20000,
+    "history": [18000, 18100, 18200, 18300, 18400, 18500, 18600, 18700, 18800, 20000],
+    "supply": 65,
+    "demand": 90,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "LG Solo Microwave Oven",
+    "symbol": "LGSMIC",
+    "category": "Oven",
+    "currentPrice": 15000,
+    "history": [14000, 14100, 14200, 14300, 14400, 14500, 14600, 14700, 14800, 15000],
+    "supply": 75,
+    "demand": 80,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Dell Inspiron 15",
+    "symbol": "DINV15",
+    "category": "Laptop",
+    "currentPrice": 55000,
+    "history": [50000, 50250, 50500, 50750, 51000, 51250, 51500, 51750, 52000, 55000],
+    "supply": 80,
+    "demand": 85,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "HP Pavilion x360",
+    "symbol": "HPPAV",
+    "category": "Laptop",
+    "currentPrice": 60000,
+    "history": [55000, 55250, 55500, 55750, 56000, 56250, 56500, 56750, 57000, 60000],
+    "supply": 75,
+    "demand": 90,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Apple MacBook Air",
+    "symbol": "MBAIR",
+    "category": "Laptop",
+    "currentPrice": 100000,
+    "history": [95000, 95500, 96000, 96500, 97000, 97500, 98000, 98500, 99000, 100000],
+    "supply": 40,
+    "demand": 60,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Lenovo ThinkPad E15",
+    "symbol": "LTP15",
+    "category": "Laptop",
+    "currentPrice": 70000,
+    "history": [65000, 65250, 65500, 65750, 66000, 66250, 66500, 66750, 67000, 70000],
+    "supply": 90,
+    "demand": 95,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Asus ROG Zephyrus",
+    "symbol": "ASUSROG",
+    "category": "Laptop",
+    "currentPrice": 150000,
+    "history": [145000, 145500, 146000, 146500, 147000, 147500, 148000, 148500, 149000, 150000],
+    "supply": 30,
+    "demand": 55,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  },
+  {
+    "name": "Apple Watch Series 7",
+    "symbol": "AW7",
+    "category": "Smartwatch",
+    "currentPrice": 45000,
+    "history": [42000, 42250, 42500, 42750, 43000, 43250, 43500, 43750, 44000, 45000],
+    "supply": 100,
+    "demand": 110,
+    "lastUpdated": "2025-04-16T12:00:00Z"
+  }
+]

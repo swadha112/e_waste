@@ -14,6 +14,7 @@
 .swiftpm/
 migrate_working_dir/
 .runtimeconfig.json
+key.properties
 
 # IntelliJ related
 *.iml

@@ -617,7 +617,7 @@ class DashboardPage extends StatelessWidget {
             SizedBox(height: 20),
             // Section 1: Pickup Requests
             Text(
-              'Pickup Requests',
+              'Collective Pickup Requests',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -628,7 +628,7 @@ class DashboardPage extends StatelessWidget {
             SizedBox(height: 20),
             // Section 2: Scheduled Pickup
             Text(
-              'Scheduled Pickup',
+              'Scheduled Personal Pickup',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
