@@ -1,4 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const functions      = require("firebase-functions");
 const twilio = require("twilio");
 const admin = require("firebase-admin");
 if (!admin.apps.length) admin.initializeApp();
@@ -106,3 +107,48 @@ exports.handleWhatsAppReply = onRequest({ timeoutSeconds: 30 }, async (req, res)
   }
 });
 
+// 3) Scheduled stock updates (v2 Scheduler)
+// ——————————————
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+
+exports.updateStocks = onSchedule("every 5 minutes", async (event) => {
+  const db = admin.firestore();
+  const snap = await db.collection("stocks").get();
+  const batch = db.batch();
+
+  snap.docs.forEach((doc) => {
+    const d = doc.data();
+    const oldPrice   = d.currentPrice  || 0;
+    const oldHistory = Array.isArray(d.history) ? d.history : [];
+    const oldSupply  = d.supply         || 1;
+    const oldDemand  = d.demand         || 1;
+
+    // 1) supply/demand ±10
+    const supplyChange = Math.floor(Math.random()*21) - 10;
+    const demandChange = Math.floor(Math.random()*21) - 10;
+    const newSupply    = Math.max(1, oldSupply + supplyChange);
+    const newDemand    = Math.max(1, oldDemand + demandChange);
+
+    // 2) price swing ±5% + imbalance bias ±3%
+    const rndPct     = Math.random()*0.1 - 0.05;
+    const imbalance  = (newDemand - newSupply)/(newDemand + newSupply);
+    const biasPct    = Math.max(-0.03, Math.min(0.03, imbalance * 0.1));
+    const newPrice   = Math.max(10, Math.round(oldPrice*(1 + rndPct + biasPct)));
+
+    // 3) roll history window (last 9 + new)
+    const newHistory = oldHistory.slice(-9);
+    newHistory.push(newPrice);
+
+    // 4) batch update
+    batch.update(doc.ref, {
+      currentPrice: newPrice,
+      history:      newHistory,
+      supply:       newSupply,
+      demand:       newDemand,
+      lastUpdated:  admin.firestore.FieldValue.serverTimestamp(),
+    });
+  });
+
+  await batch.commit();
+  console.log(`updateStocks: ${snap.size} docs updated`);
+});
